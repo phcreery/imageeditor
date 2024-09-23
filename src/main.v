@@ -4,16 +4,11 @@ import sokol.sapp
 import sokol.gfx
 import sokol.sgl
 import libs.sokolext as _
-import libs.cimgui
 import libs.sokolext.simgui
 import stbi
 import os
 import arrays
 
-// import libs.stbiext
-// const max_file_size = 48 * 1024 * 1024
-// const max_scale = 8.0
-// const min_scale = 0.25
 
 struct Color {
 mut:
@@ -50,12 +45,12 @@ pub mut:
 }
 
 @[heap]
-struct AppState {
+pub struct AppState {
 mut:
 	pass_action gfx.PassAction
-	// image     gfx.Image
 	image        GfxImage
 	checkerboard Checkerboard
+	windows UIWindows
 }
 
 fn init(mut state AppState) {
@@ -115,10 +110,8 @@ fn init(mut state AppState) {
 
 	// texture and sampler for rendering checkboard background
 	mut pixels := [][]u32{len: 4, init: []u32{len: 4}}
-	// mut pixels := unsafe { malloc(4*4*4) }
 	for y := 0; y < 4; y++ {
 		for x := 0; x < 4; x++ {
-			// pixels[y][x] = ((x ^ y) & 1) ? 0xFF666666 : 0xFF333333
 			if (x ^ y) & 1 == 1 {
 				pixels[y][x] = u32(0xFF666666)
 			} else {
@@ -198,9 +191,7 @@ fn create_image(mut state AppState) {
 	image_desc := gfx.ImageDesc{
 		width:        stbi_image.width
 		height:       stbi_image.height
-		pixel_format: gfx.PixelFormat.rgba8
-
-		// rgb8 deprecated
+		pixel_format: gfx.PixelFormat.rgba8 // rgb8 deprecated
 		data: tmp_sbc
 	}
 	state.image.image = gfx.make_image(&image_desc)
@@ -217,23 +208,10 @@ fn frame(mut state AppState) {
 	}
 	simgui.new_frame(desc)
 
+
 	//=== UI CODE STARTS HERE ===
-	window_pos := cimgui.ImVec2{10, 10}
-	window_pivot := cimgui.ImVec2{0, 0}
-	cimgui.set_next_window_pos(window_pos, 1 << 1, window_pivot)
-	window_size := cimgui.ImVec2{400, 100}
-
-	// imgui.C.ImGuiCond_Once = 1 << 1
-	cimgui.set_next_window_size(window_size, 1 << 1)
-
-	// imgui.C.ImGuiWindowFlags_None = 0
-	p_open := false
-	cimgui.begin('Hello Dear ImGui from V!', &p_open, 0)
-
-	// ImGuiColorEditFlags_None = 0
-	cimgui.color_edit3('Background', &state.pass_action.colors[0].clear_value.r, 0)
-	cimgui.end()
-
+	draw_about_window(mut state)
+	draw_rgb_window(mut state)
 	//=== UI CODE ENDS HERE ===
 
 	// BEGIN SGL
@@ -244,42 +222,8 @@ fn frame(mut state AppState) {
 	sgl.matrix_mode_projection()
 	sgl.ortho(-disp_w * 0.5, disp_w * 0.5, disp_h * 0.5, -disp_h * 0.5, -1.0, 1.0)
 
-	// draw checkerboard background
-	x0 := -disp_w * 0.5
-	x1 := x0 + disp_w
-	y0 := -disp_h * 0.5
-	y1 := y0 + disp_h
-
-	u0 := (x0 / 32.0)
-	u1 := (x1 / 32.0)
-	v0 := (y0 / 32.0)
-	v1 := (y1 / 32.0)
-
-	sgl.texture(state.checkerboard.image, state.checkerboard.sampler)
-	sgl.begin_quads()
-	sgl.v2f_t2f(x0, y0, u0, v0)
-	sgl.v2f_t2f(x1, y0, u1, v0)
-	sgl.v2f_t2f(x1, y1, u1, v1)
-	sgl.v2f_t2f(x0, y1, u0, v1)
-	sgl.end()
-
-	// draw actual image
-	x0_img := ((-state.image.width * 0.5) * state.image.scale) +
-		(state.image.offset.x * state.image.scale)
-	x1_img := x0_img + (state.image.width * state.image.scale)
-	y0_img := ((-state.image.height * 0.5) * state.image.scale) +
-		(state.image.offset.y * state.image.scale)
-	y1_img := y0_img + (state.image.height * state.image.scale)
-
-	sgl.texture(state.image.image, state.image.sampler)
-	sgl.load_pipeline(state.image.pipeline)
-	sgl.c3f(state.image.color.r, state.image.color.g, state.image.color.b)
-	sgl.begin_quads()
-	sgl.v2f_t2f(x0_img, y0_img, 0.0, 0.0)
-	sgl.v2f_t2f(x1_img, y0_img, 1.0, 0.0)
-	sgl.v2f_t2f(x1_img, y1_img, 1.0, 1.0)
-	sgl.v2f_t2f(x0_img, y1_img, 0.0, 1.0)
-	sgl.end()
+	canvas_draw_checkerboard(state, disp_w, disp_h)
+	canvas_draw_image(state)
 
 	// END SGL
 
@@ -297,12 +241,8 @@ fn cleanup(mut state AppState) {
 	gfx.shutdown()
 }
 
-fn event(ev &sapp.Event, mut state AppState) {
-	simgui.handle_event(ev)
-}
-
 fn main() {
-	title := 'V sokol cimgui demo'
+	title := "Peyton's Image Editor"
 
 	mut state := &AppState{}
 	desc := sapp.Desc{
@@ -315,6 +255,5 @@ fn main() {
 		html5_canvas_name:   title.str
 	}
 
-	// state := &AppState{}
 	sapp.run(&desc)
 }

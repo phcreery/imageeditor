@@ -4,11 +4,12 @@
 OBJS = thirdparty/cimgui/libcimgui.o
 OBJS += thirdparty/sokol/sokol_glue.h
 OBJS += thirdparty/sokol/util/sokol_imgui.h
+OBJS += thirdparty/LibRaw/lib/libraw.a
 
 UNAME_S := $(shell uname -s)
 
 app: $(OBJS)
-	v -cc cc -showcc .\src
+	v -cc cc -showcc .
 
 cimgui:
 	cd thirdparty && git clone --recursive https://github.com/cimgui/cimgui.git
@@ -19,6 +20,19 @@ cimgui:
 
 sokol:
 	cd thirdparty && git clone https://github.com/floooh/sokol
+
+libraw:
+	cd thirdparty && git clone https://github.com/LibRaw/LibRaw
+	cd thirdparty/LibRaw && $(MAKE) -f Makefile.dist library
+# for win users, you may need to use msys2 mingw64 for this ^
+# or change it to Makefile.mingw
+# or add LDADD+=-lws2_32, see https://github.com/LibRaw/LibRaw/issues/267
+# If you don't have zlib installed, it is optional
+# You may need to comment out the lines in thirdparty/LibRaw/Makefile.dist
+# ZLIB support (FP dng)
+#CFLAGS+=-DUSE_ZLIB
+#LDADD+=-lz
+
 
 clean:
 	rm -f $(OBJS)

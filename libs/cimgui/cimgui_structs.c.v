@@ -456,3 +456,22 @@ pub mut:
 	Capacity int
 	Data &T
 }
+
+pub struct C.ImVec2_Simple {
+pub:
+	x f32
+	y f32
+}
+
+pub struct C.ImVec4_Simple {
+pub:
+	x f32
+	y f32
+	z f32
+	w f32
+}
+
+pub struct C.ImColor_Simple {
+pub:
+	Value C.ImVec4_Simple
+}

@@ -30,6 +30,9 @@ $if emscripten ? {
 	#flag -g3
 }
 
+// #flag -I @VMODROOT/thirdparty/cimgui/imgui
+// #include "imgui.h"
+
 // ----- sokol_imgui.h/sokol_glue.h -----
 #flag -I @VMODROOT/thirdparty/sokol
 #flag -I @VMODROOT/thirdparty/sokol/util

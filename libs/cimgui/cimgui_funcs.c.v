@@ -1,24 +1,5 @@
 module cimgui
 
-pub struct C.ImVec2_Simple {
-pub:
-	x f32
-	y f32
-}
-
-pub struct C.ImVec4_Simple {
-pub:
-	x f32
-	y f32
-	z f32
-	w f32
-}
-
-pub struct C.ImColor_Simple {
-pub:
-	Value C.ImVec4_Simple
-}
-
 fn C.ImVec2ToSimple(vec C.ImVec2) C.ImVec2_Simple
 fn C.ImVec4ToSimple(vec C.ImVec4) C.ImVec4_Simple
 fn C.ImColorToSimple(col C.ImColor) C.ImColor_Simple
@@ -50,7 +31,7 @@ fn C.igGetVersion() byteptr
 fn C.igStyleColorsDark(dst &C.ImGuiStyle)
 fn C.igStyleColorsClassic(dst &C.ImGuiStyle)
 fn C.igStyleColorsLight(dst &C.ImGuiStyle)
-fn C.igBegin(name byteptr, p_open &bool, flags int) bool
+fn C.igBegin(name byteptr, p_open &bool, flags ImGuiWindowFlags) bool
 fn C.igEnd()
 fn C.igBeginChild(str_id byteptr, size C.ImVec2, border bool, flags int) bool
 fn C.igBeginChildID(id u32, size C.ImVec2, border bool, flags int) bool
@@ -66,8 +47,8 @@ fn C.igGetWindowPos() C.ImVec2
 fn C.igGetWindowSize() C.ImVec2
 fn C.igGetWindowWidth() f32
 fn C.igGetWindowHeight() f32
-fn C.igSetNextWindowPos(pos C.ImVec2, cond int, pivot C.ImVec2)
-fn C.igSetNextWindowSize(size C.ImVec2, cond int)
+fn C.igSetNextWindowPos(pos C.ImVec2, cond ImGuiCond, pivot C.ImVec2)
+fn C.igSetNextWindowSize(size C.ImVec2, cond ImGuiCond)
 fn C.igSetNextWindowSizeConstraints(size_min C.ImVec2, size_max C.ImVec2, custom_callback fn(&C.ImGuiSizeCallbackData), custom_callback_data voidptr)
 fn C.igSetNextWindowContentSize(size C.ImVec2)
 fn C.igSetNextWindowCollapsed(collapsed bool, cond int)
