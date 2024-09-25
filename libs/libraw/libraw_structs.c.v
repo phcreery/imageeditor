@@ -82,14 +82,15 @@ struct Libraw_callbacks_t {
 }
 
 @[typedef]
-struct C.libraw_processed_image_t {
-	// type_ LibRaw_image_formats
+pub struct C.libraw_processed_image_t {
+	pub:
+	@type     LibRawImageFormats
 	height    Ushort
 	width     Ushort
 	colors    Ushort
 	bits      Ushort
 	data_size u32
-	data      [1]u8
+	data      &u8
 }
 
 type Libraw_processed_image_t = C.libraw_processed_image_t
@@ -124,7 +125,9 @@ struct Libraw_raw_inset_crop_t {
 	cheight Ushort
 }
 
-struct Libraw_image_sizes_t {
+@[typedef]
+pub struct C.libraw_image_sizes_t {
+pub: 
 	raw_height      Ushort
 	raw_width       Ushort
 	height          Ushort
@@ -140,6 +143,8 @@ struct Libraw_image_sizes_t {
 	raw_aspect      Ushort
 	raw_inset_crops [2]Libraw_raw_inset_crop_t
 }
+
+type Libraw_image_sizes_t = C.libraw_image_sizes_t
 
 // top, left, bottom, right pixel coordinates, (0,0) is top left pixel;
 struct Libraw_area_t {
@@ -1216,8 +1221,9 @@ struct Libraw_custom_camera_t {
 }
 
 @[typedef]
-struct C.libraw_data_t {
-	image            [4]fn () Ushort
+pub struct C.libraw_data_t {
+	pub:
+	image            [4]Ushort
 	sizes            Libraw_image_sizes_t
 	idata            Libraw_iparams_t
 	lens             Libraw_lensinfo_t

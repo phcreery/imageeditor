@@ -8,6 +8,7 @@ import libs.sokolext.simgui
 import stbi
 import os
 import arrays
+import libs.libraw
 
 
 struct Color {
@@ -145,7 +146,8 @@ fn init(mut state AppState) {
 	})
 	dump(state.checkerboard.sampler)
 
-	create_image(mut state)
+	// create_image(mut state)
+	create_image_raw(mut state)
 }
 
 fn reset_image_params(mut state AppState) {
@@ -159,12 +161,13 @@ fn reset_image_params(mut state AppState) {
 
 fn create_image(mut state AppState) {
 	// image_path := 'Lenna.png'
-	image_path := 'LIT_9419.JPG_edit.bmp'
+	image_path := 'sample/LIT_9419.JPG_edit.bmp'
 	// image_path := 'LIT_9419.JPG'
 	params := stbi.LoadParams{
 		desired_channels: 4
 	}
 	buffer := os.read_bytes(image_path) or { panic('failed to read image') }
+	dump(buffer.data)
 	stbi_image := stbi.load_from_memory(buffer.data, buffer.len, params) or {
 		panic('failed to load image')
 	}
@@ -197,6 +200,79 @@ fn create_image(mut state AppState) {
 	state.image.image = gfx.make_image(&image_desc)
 	println('image created')
 	dump(state.image.image)
+}
+
+fn create_image_raw(mut state AppState) {
+	image_path := 'sample/DSC_6765.NEF'
+	// image_path := 'sample/RAW_NIKON_D100.NEF'
+	libraw_data := libraw.libraw_init(.none_)
+	println('libraw initialized')
+
+	// Open the file and read the metadata
+	mut status := libraw.libraw_open_file(libraw_data, image_path)
+	println('file opened ${status}')
+	
+	// The metadata are accessible through data fields
+	// dump(libraw_data.image)
+
+	// Let us unpack the image
+	status = libraw.libraw_unpack(libraw_data)
+	println('unpacked ${status}')
+
+	// Convert from imgdata.rawdata to imgdata.image using raw2image
+	// status = libraw.libraw_raw2image(libraw_data)
+	// println('raw2image ${status}')
+	// dump(libraw_data.image)
+	// buffer_size := libraw_data.sizes.iwidth * libraw_data.sizes.iheight
+	// r := arrays.carray_to_varray[i16](libraw_data.image[0], buffer_size)
+	// g := arrays.carray_to_varray[i16](libraw_data.image[1], buffer_size)
+	// b := arrays.carray_to_varray[i16](libraw_data.image[2], buffer_size)
+	// g2 := arrays.carray_to_varray[i16](libraw_data.image[3], buffer_size)
+
+	// Convert from imgdata.rawdata to imgdata.image using dcraw_process
+	status = libraw.libraw_dcraw_process(libraw_data)
+	println('dcraw_process ${status}')
+	libraw_processed_image := libraw.libraw_dcraw_make_mem_image(libraw_data, &status)
+	println('dcraw_make_mem_image ${status}')
+	dump(libraw_processed_image)
+
+	println('libraw_processed_image.data ${libraw_processed_image.data}')
+
+	mut data := unsafe { arrays.carray_to_varray[u8](libraw_processed_image.data, libraw_processed_image.data_size) }
+
+	// convert from rgb to rgba
+	println('data first 4 bytes ${data[0]} ${data[1]} ${data[2]} ${data[3]}')
+	mut data_rgba := []u8{len: int(libraw_processed_image.width * libraw_processed_image.height * 4)}
+	for i := 0; i < libraw_processed_image.width * libraw_processed_image.height; i++ {
+		data_rgba[i * 4 + 0] = data[i * 3 + 0]
+		data_rgba[i * 4 + 1] = data[i * 3 + 1]
+		data_rgba[i * 4 + 2] = data[i * 3 + 2]
+		data_rgba[i * 4 + 3] = 0xFF
+	}
+	println('data_rgba first 4 bytes ${data_rgba[0]} ${data_rgba[1]} ${data_rgba[2]} ${data_rgba[3]}')
+
+
+	// let's create a new image
+	reset_image_params(mut state)
+	state.image.width = f32(libraw_processed_image.width)
+	state.image.height = f32(libraw_processed_image.height)
+
+
+	mut tmp_sbc := gfx.ImageData{}
+	tmp_sbc.subimage[0][0] = gfx.Range{
+		ptr:  data_rgba.data
+		size: usize(libraw_processed_image.width * libraw_processed_image.height * 4)
+	}
+	image_desc := gfx.ImageDesc{
+		width:        int(libraw_processed_image.width)
+		height:       int(libraw_processed_image.height)
+		pixel_format: gfx.PixelFormat.rgba8 // rgb8 deprecated
+		data: 	      tmp_sbc
+	}
+	state.image.image = gfx.make_image(&image_desc)
+	println('image created')
+	// dump(image)
+
 }
 
 fn frame(mut state AppState) {

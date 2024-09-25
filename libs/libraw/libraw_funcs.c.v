@@ -40,16 +40,17 @@ pub fn libraw_strprogress(arg0 int) &i8 {
 }
 
 // LibRaw C API 
-fn C.libraw_init(flags u32) &Libraw_data_t
+fn C.libraw_init(flags ConstructorFlags) &Libraw_data_t
 
-pub fn libraw_init(flags u32) &Libraw_data_t {
+pub fn libraw_init(flags ConstructorFlags) &Libraw_data_t {
 	return C.libraw_init(flags)
 }
 
-fn C.libraw_open_file(arg0 &Libraw_data_t, arg1 &i8) int
+fn C.libraw_open_file(arg0 &Libraw_data_t, arg1 &i8) LibRawErrors
 
-pub fn libraw_open_file(arg0 &Libraw_data_t, arg1 &i8) int {
-	return C.libraw_open_file(arg0, arg1)
+pub fn libraw_open_file(ctx &Libraw_data_t, file string) LibRawErrors {
+	// return C.libraw_open_file(arg0, arg1)
+	return C.libraw_open_file(ctx, file.str)
 }
 
 // Character = wchar_t in https://github.com/vlang/v/blob/master/vlib/builtin/wchar/wchar.c.v
@@ -73,9 +74,9 @@ pub fn libraw_open_bayer(lr &Libraw_data_t, data &u8, datalen u32, _raw_width Us
 	return C.libraw_open_bayer(lr, data, datalen, _raw_width, _raw_height, _left_margin, _top_margin, _right_margin, _bottom_margin, procflags, bayer_battern, unused_bits, otherflags, black_level)
 }
 
-fn C.libraw_unpack(arg0 &Libraw_data_t) int
+fn C.libraw_unpack(arg0 &Libraw_data_t) LibRawErrors
 
-pub fn libraw_unpack(arg0 &Libraw_data_t) int {
+pub fn libraw_unpack(arg0 &Libraw_data_t) LibRawErrors {
 	return C.libraw_unpack(arg0)
 }
 
@@ -115,9 +116,9 @@ pub fn libraw_subtract_black(arg0 &Libraw_data_t) {
 	C.libraw_subtract_black(arg0)
 }
 
-fn C.libraw_raw2image(arg0 &Libraw_data_t) int
+fn C.libraw_raw2image(arg0 &Libraw_data_t) LibRawErrors
 
-pub fn libraw_raw2image(arg0 &Libraw_data_t) int {
+pub fn libraw_raw2image(arg0 &Libraw_data_t) LibRawErrors {
 	return C.libraw_raw2image(arg0)
 }
 
@@ -221,15 +222,15 @@ pub fn libraw_dcraw_thumb_writer(lr &Libraw_data_t, fname &i8) int {
 	return C.libraw_dcraw_thumb_writer(lr, fname)
 }
 
-fn C.libraw_dcraw_process(lr &Libraw_data_t) int
+fn C.libraw_dcraw_process(lr &Libraw_data_t) LibRawErrors
 
-pub fn libraw_dcraw_process(lr &Libraw_data_t) int {
+pub fn libraw_dcraw_process(lr &Libraw_data_t) LibRawErrors {
 	return C.libraw_dcraw_process(lr)
 }
 
-fn C.libraw_dcraw_make_mem_image(lr &Libraw_data_t, errc &int) &Libraw_processed_image_t
+fn C.libraw_dcraw_make_mem_image(lr &Libraw_data_t, errc &LibRawErrors) &Libraw_processed_image_t
 
-pub fn libraw_dcraw_make_mem_image(lr &Libraw_data_t, errc &int) &Libraw_processed_image_t {
+pub fn libraw_dcraw_make_mem_image(lr &Libraw_data_t, errc &LibRawErrors) &Libraw_processed_image_t {
 	return C.libraw_dcraw_make_mem_image(lr, errc)
 }
 
