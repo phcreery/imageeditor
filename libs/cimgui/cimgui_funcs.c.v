@@ -9,10 +9,35 @@ fn C.ImVec2_ImVec2Float(_x f32, _y f32) &C.ImVec2
 fn C.ImVec4_ImVec4() &C.ImVec4
 fn C.ImVec4_destroy(self &C.ImVec4)
 fn C.ImVec4_ImVec4Float(_x f32, _y f32, _z f32, _w f32) &C.ImVec4
+
 fn C.igCreateContext(shared_font_atlas &C.ImFontAtlas) &C.ImGuiContext
+
+@[inline]
+pub fn create_context(shared_font_atlas &C.ImFontAtlas) &C.ImGuiContext {
+	return C.igCreateContext(shared_font_atlas)
+}
+
 fn C.igDestroyContext(ctx &C.ImGuiContext)
+
+@[inline]
+pub fn destroy_context(ctx &C.ImGuiContext) {
+	C.igDestroyContext(ctx)
+}
+
 fn C.igGetCurrentContext() &C.ImGuiContext
+
+@[inline]
+pub fn get_current_context() &C.ImGuiContext {
+	return C.igGetCurrentContext()
+}
+
 fn C.igSetCurrentContext(ctx &C.ImGuiContext)
+
+@[inline]
+pub fn set_current_context(ctx &C.ImGuiContext) {
+	C.igSetCurrentContext(ctx)
+}
+
 fn C.igDebugCheckVersionAndDataLayout(version_str byteptr, sz_io u32, sz_style u32, sz_vec2 u32, sz_vec4 u32, sz_drawvert u32, sz_drawidx u32) bool
 fn C.igGetIO() &C.ImGuiIO
 fn C.igGetStyle() &C.ImGuiStyle
@@ -23,16 +48,38 @@ fn C.igGetDrawData() &C.ImDrawData
 fn C.igShowDemoWindow(p_open &bool)
 fn C.igShowAboutWindow(p_open &bool)
 fn C.igShowMetricsWindow(p_open &bool)
+
+pub fn show_metrics_window(p_open &bool) {
+	C.igShowMetricsWindow(p_open)
+}
+
 fn C.igShowStyleEditor(ref &C.ImGuiStyle)
 fn C.igShowStyleSelector(label byteptr) bool
 fn C.igShowFontSelector(label byteptr)
 fn C.igShowUserGuide()
 fn C.igGetVersion() byteptr
+
+@[inline]
+pub fn get_version() string {
+	return unsafe { cstring_to_vstring(C.igGetVersion()) }
+}
+
 fn C.igStyleColorsDark(dst &C.ImGuiStyle)
 fn C.igStyleColorsClassic(dst &C.ImGuiStyle)
 fn C.igStyleColorsLight(dst &C.ImGuiStyle)
+
 fn C.igBegin(name byteptr, p_open &bool, flags ImGuiWindowFlags) bool
+@[inline]
+pub fn begin(name string, p_open &bool, flags ImGuiWindowFlags) bool {
+	return C.igBegin(name.str, p_open, flags)
+}
+
 fn C.igEnd()
+@[inline]
+pub fn end() {
+	C.igEnd()
+}
+
 fn C.igBeginChild(str_id byteptr, size C.ImVec2, border bool, flags int) bool
 fn C.igBeginChildID(id u32, size C.ImVec2, border bool, flags int) bool
 fn C.igEndChild()
@@ -48,8 +95,20 @@ fn C.igGetWindowSize() C.ImVec2
 fn C.igGetWindowWidth() f32
 fn C.igGetWindowHeight() f32
 fn C.igSetNextWindowPos(pos C.ImVec2, cond ImGuiCond, pivot C.ImVec2)
+
+@[inline]
+pub fn set_next_window_pos(pos ImVec2, cond ImGuiCond, pivot ImVec2) {
+	C.igSetNextWindowPos(pos, cond, pivot)
+}
+
 fn C.igSetNextWindowSize(size C.ImVec2, cond ImGuiCond)
-fn C.igSetNextWindowSizeConstraints(size_min C.ImVec2, size_max C.ImVec2, custom_callback fn(&C.ImGuiSizeCallbackData), custom_callback_data voidptr)
+
+@[inline]
+pub fn set_next_window_size(size ImVec2, cond ImGuiCond) {
+	C.igSetNextWindowSize(size, cond)
+}
+
+fn C.igSetNextWindowSizeConstraints(size_min C.ImVec2, size_max C.ImVec2, custom_callback fn (&C.ImGuiSizeCallbackData), custom_callback_data voidptr)
 fn C.igSetNextWindowContentSize(size C.ImVec2)
 fn C.igSetNextWindowCollapsed(collapsed bool, cond int)
 fn C.igSetNextWindowFocus()
@@ -137,17 +196,21 @@ fn C.igGetIDRange(str_id_begin byteptr, str_id_end byteptr) u32
 fn C.igGetIDPtr(ptr_id voidptr) u32
 fn C.igTextUnformatted(text byteptr, text_end byteptr)
 fn C.igText(fmt byteptr)
-fn C.igTextV(fmt byteptr, args voidptr /* ...voidptr */)
+pub fn text(text string) {
+	C.igText(text.str)
+}
+
+fn C.igTextV(fmt byteptr, args ...voidptr)
 fn C.igTextColored(col C.ImVec4, fmt byteptr)
-fn C.igTextColoredV(col C.ImVec4, fmt byteptr, args voidptr /* ...voidptr */)
+fn C.igTextColoredV(col C.ImVec4, fmt byteptr, args ...voidptr)
 fn C.igTextDisabled(fmt byteptr)
-fn C.igTextDisabledV(fmt byteptr, args voidptr /* ...voidptr */)
+fn C.igTextDisabledV(fmt byteptr, args ...voidptr)
 fn C.igTextWrapped(fmt byteptr)
-fn C.igTextWrappedV(fmt byteptr, args voidptr /* ...voidptr */)
+fn C.igTextWrappedV(fmt byteptr, args ...voidptr)
 fn C.igLabelText(label byteptr, fmt byteptr)
-fn C.igLabelTextV(label byteptr, fmt byteptr, args voidptr /* ...voidptr */)
+fn C.igLabelTextV(label byteptr, fmt byteptr, args ...voidptr)
 fn C.igBulletText(fmt byteptr)
-fn C.igBulletTextV(fmt byteptr, args voidptr /* ...voidptr */)
+fn C.igBulletTextV(fmt byteptr, args ...voidptr)
 fn C.igButton(label byteptr, size C.ImVec2) bool
 fn C.igSmallButton(label byteptr) bool
 fn C.igInvisibleButton(str_id byteptr, size C.ImVec2) bool
@@ -155,6 +218,11 @@ fn C.igArrowButton(str_id byteptr, dir int) bool
 fn C.igImage(user_texture_id voidptr, size C.ImVec2, uv0 C.ImVec2, uv1 C.ImVec2, tint_col C.ImVec4, border_col C.ImVec4)
 fn C.igImageButton(user_texture_id voidptr, size C.ImVec2, uv0 C.ImVec2, uv1 C.ImVec2, frame_padding int, bg_col C.ImVec4, tint_col C.ImVec4) bool
 fn C.igCheckbox(label byteptr, v &bool) bool
+
+pub fn checkbox(label string, v &bool) bool {
+	return C.igCheckbox(label.str, v)
+}
+
 fn C.igCheckboxFlags(label byteptr, flags &u32, flags_value u32) bool
 fn C.igRadioButtonBool(label byteptr, active bool) bool
 fn C.igRadioButtonIntPtr(label byteptr, v &int, v_button int) bool
@@ -164,7 +232,8 @@ fn C.igBeginCombo(label byteptr, preview_value byteptr, flags int) bool
 fn C.igEndCombo()
 fn C.igCombo(label byteptr, current_item &int, items []byteptr, items_count int, popup_max_height_in_items int) bool
 fn C.igComboStr(label byteptr, current_item &int, items_separated_by_zeros byteptr, popup_max_height_in_items int) bool
-fn C.igComboFnPtr(label byteptr, current_item &int, items_getter fn(voidptr, int, &voidptr /* const char** */) bool, data voidptr, items_count int, popup_max_height_in_items int) bool
+
+// fn C.igComboFnPtr(label byteptr, current_item &int, items_getter fn(voidptr, int, &voidptr /* const char** */) bool, data voidptr, items_count int, popup_max_height_in_items int) bool
 fn C.igDragFloat(label byteptr, v &f32, v_speed f32, v_min f32, v_max f32, format byteptr, power f32) bool
 fn C.igDragFloat2(label byteptr, v &f32, v_speed f32, v_min f32, v_max f32, format byteptr, power f32) bool
 fn C.igDragFloat3(label byteptr, v &f32, v_speed f32, v_min f32, v_max f32, format byteptr, power f32) bool
@@ -191,6 +260,7 @@ fn C.igSliderScalarN(label byteptr, data_type int, p_data voidptr, components in
 fn C.igVSliderFloat(label byteptr, size C.ImVec2, v &f32, v_min f32, v_max f32, format byteptr, power f32) bool
 fn C.igVSliderInt(label byteptr, size C.ImVec2, v &int, v_min int, v_max int, format byteptr) bool
 fn C.igVSliderScalar(label byteptr, size C.ImVec2, data_type int, p_data voidptr, p_min voidptr, p_max voidptr, format byteptr, power f32) bool
+
 // fn C.igInputText(label byteptr, buf byteptr, buf_size u32, flags int, callback fn(&ImGuiTextEditCallbackData) int, user_data voidptr) bool
 // fn C.igInputTextMultiline(label byteptr, buf byteptr, buf_size u32, size C.ImVec2, flags int, callback fn(&ImGuiTextEditCallbackData) int, user_data voidptr) bool
 // fn C.igInputTextWithHint(label byteptr, hint byteptr, buf byteptr, buf_size u32, flags int, callback fn(&ImGuiTextEditCallbackData) int, user_data voidptr) bool
@@ -206,6 +276,12 @@ fn C.igInputDouble(label byteptr, v &f64, step f64, step_fast f64, format bytept
 fn C.igInputScalar(label byteptr, data_type int, p_data voidptr, p_step voidptr, p_step_fast voidptr, format byteptr, flags int) bool
 fn C.igInputScalarN(label byteptr, data_type int, p_data voidptr, components int, p_step voidptr, p_step_fast voidptr, format byteptr, flags int) bool
 fn C.igColorEdit3(label byteptr, col &f32, flags int) bool
+
+@[inline]
+pub fn color_edit3(label string, col &f32, flags int) bool {
+	return C.igColorEdit3(label.str, col, flags)
+}
+
 fn C.igColorEdit4(label byteptr, col &f32, flags int) bool
 fn C.igColorPicker3(label byteptr, col &f32, flags int) bool
 fn C.igColorPicker4(label byteptr, col &f32, flags int, ref_col &f32) bool
@@ -214,13 +290,13 @@ fn C.igSetColorEditOptions(flags int)
 fn C.igTreeNodeStr(label byteptr) bool
 fn C.igTreeNodeStrStr(str_id byteptr, fmt byteptr) bool
 fn C.igTreeNodePtr(ptr_id voidptr, fmt byteptr) bool
-fn C.igTreeNodeVStr(str_id byteptr, fmt byteptr, args voidptr /* ...voidptr */) bool
-fn C.igTreeNodeVPtr(ptr_id voidptr, fmt byteptr, args voidptr /* ...voidptr */) bool
+fn C.igTreeNodeVStr(str_id byteptr, fmt byteptr, args ...voidptr) bool
+fn C.igTreeNodeVPtr(ptr_id voidptr, fmt byteptr, args ...voidptr) bool
 fn C.igTreeNodeExStr(label byteptr, flags int) bool
 fn C.igTreeNodeExStrStr(str_id byteptr, flags int, fmt byteptr) bool
 fn C.igTreeNodeExPtr(ptr_id voidptr, flags int, fmt byteptr) bool
-fn C.igTreeNodeExVStr(str_id byteptr, flags int, fmt byteptr, args voidptr /* ...voidptr */) bool
-fn C.igTreeNodeExVPtr(ptr_id voidptr, flags int, fmt byteptr, args voidptr /* ...voidptr */) bool
+fn C.igTreeNodeExVStr(str_id byteptr, flags int, fmt byteptr, args ...voidptr) bool
+fn C.igTreeNodeExVPtr(ptr_id voidptr, flags int, fmt byteptr, args ...voidptr) bool
 fn C.igTreePushStr(str_id byteptr)
 fn C.igTreePushPtr(ptr_id voidptr)
 fn C.igTreePop()
@@ -231,14 +307,21 @@ fn C.igSetNextItemOpen(is_open bool, cond int)
 fn C.igSelectable(label byteptr, selected bool, flags int, size C.ImVec2) bool
 fn C.igSelectableBoolPtr(label byteptr, p_selected &bool, flags int, size C.ImVec2) bool
 fn C.igListBoxStr_arr(label byteptr, current_item &int, items []byteptr, items_count int, height_in_items int) bool
-fn C.igListBoxFnPtr(label byteptr, current_item &int, items_getter fn(voidptr, int, &voidptr /* const char** */) bool, data voidptr, items_count int, height_in_items int) bool
+
+// fn C.igListBoxFnPtr(label byteptr, current_item &int, items_getter fn(voidptr, int, &voidptr /* const char** */) bool, data voidptr, items_count int, height_in_items int) bool
 fn C.igListBoxHeaderVec2(label byteptr, size C.ImVec2) bool
 fn C.igListBoxHeaderInt(label byteptr, items_count int, height_in_items int) bool
 fn C.igListBoxFooter()
-fn C.igPlotLines(label byteptr, values &f32, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2, stride int)
-fn C.igPlotLinesFnPtr(label byteptr, values_getter fn(voidptr, int) f32, data voidptr, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2)
+fn C.igPlotLines_FloatPtr(label byteptr, values &f32, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2, stride int)
+
+pub fn plot_lines_float_ptr(label string, values &f32, values_count int, values_offset int, overlay_text string, scale_min f32, scale_max f32, graph_size ImVec2, stride int) {
+	C.igPlotLines_FloatPtr(label.str, values, values_count, values_offset, overlay_text.str, scale_min,
+		scale_max, graph_size, stride)
+}
+
+fn C.igPlotLinesFnPtr(label byteptr, values_getter fn (voidptr, int) f32, data voidptr, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2)
 fn C.igPlotHistogramFloatPtr(label byteptr, values &f32, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2, stride int)
-fn C.igPlotHistogramFnPtr(label byteptr, values_getter fn(voidptr, int) f32, data voidptr, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2)
+fn C.igPlotHistogramFnPtr(label byteptr, values_getter fn (voidptr, int) f32, data voidptr, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2)
 fn C.igValueBool(prefix byteptr, b bool)
 fn C.igValueInt(prefix byteptr, v int)
 fn C.igValueUint(prefix byteptr, v u32)
@@ -254,7 +337,7 @@ fn C.igMenuItemBoolPtr(label byteptr, shortcut byteptr, p_selected &bool, enable
 fn C.igBeginTooltip()
 fn C.igEndTooltip()
 fn C.igSetTooltip(fmt byteptr)
-fn C.igSetTooltipV(fmt byteptr, args voidptr /* ...voidptr */)
+fn C.igSetTooltipV(fmt byteptr, args ...voidptr)
 fn C.igOpenPopup(str_id byteptr)
 fn C.igBeginPopup(str_id byteptr, flags int) bool
 fn C.igBeginPopupContextItem(str_id byteptr, mouse_button int) bool
@@ -362,7 +445,7 @@ fn C.igLoadIniSettingsFromDisk(ini_filename byteptr)
 fn C.igLoadIniSettingsFromMemory(ini_data byteptr, ini_size u32)
 fn C.igSaveIniSettingsToDisk(ini_filename byteptr)
 fn C.igSaveIniSettingsToMemory(out_ini_size &u32) byteptr
-fn C.igSetAllocatorFunctions(alloc_func fn(voidptr, voidptr), free_func fn(voidptr, voidptr), user_data voidptr)
+fn C.igSetAllocatorFunctions(alloc_func fn (voidptr, voidptr), free_func fn (voidptr, voidptr), user_data voidptr)
 fn C.igMemAlloc(size u32) voidptr
 fn C.igMemFree(ptr voidptr)
 fn C.igGetPlatformIO() &C.ImGuiPlatformIO
@@ -380,6 +463,7 @@ fn C.ImGuiIO_AddInputCharactersUTF8(self &C.ImGuiIO, str byteptr)
 fn C.ImGuiIO_ClearInputCharacters(self &C.ImGuiIO)
 fn C.ImGuiIO_ImGuiIO() &C.ImGuiIO
 fn C.ImGuiIO_destroy(self &C.ImGuiIO)
+
 // fn C.ImGuiInputTextCallbackData_ImGuiInputTextCallbackData() &ImGuiTextEditCallbackData
 // fn C.ImGuiInputTextCallbackData_destroy(self &ImGuiTextEditCallbackData)
 // fn C.ImGuiInputTextCallbackData_DeleteChars(self &ImGuiTextEditCallbackData, pos int, bytes_count int)
@@ -402,6 +486,7 @@ fn C.ImGuiTextFilter_PassFilter(self &C.ImGuiTextFilter, text byteptr, text_end 
 fn C.ImGuiTextFilter_Build(self &C.ImGuiTextFilter)
 fn C.ImGuiTextFilter_Clear(self &C.ImGuiTextFilter)
 fn C.ImGuiTextFilter_IsActive(self &C.ImGuiTextFilter) bool
+
 // fn C.ImGuiTextRange_ImGuiTextRange() &C.ImGuiTextRange
 // fn C.ImGuiTextRange_destroy(self &C.ImGuiTextRange)
 // fn C.ImGuiTextRange_ImGuiTextRangeStr(_b byteptr, _e byteptr) &C.ImGuiTextRange
@@ -417,7 +502,8 @@ fn C.ImGuiTextBuffer_clear(self &C.ImGuiTextBuffer)
 fn C.ImGuiTextBuffer_reserve(self &C.ImGuiTextBuffer, capacity int)
 fn C.ImGuiTextBuffer_c_str(self &C.ImGuiTextBuffer) byteptr
 fn C.ImGuiTextBuffer_append(self &C.ImGuiTextBuffer, str byteptr, str_end byteptr)
-fn C.ImGuiTextBuffer_appendfv(self &C.ImGuiTextBuffer, fmt byteptr, args voidptr /* ...voidptr */)
+fn C.ImGuiTextBuffer_appendfv(self &C.ImGuiTextBuffer, fmt byteptr, args ...voidptr)
+
 // fn C.ImGuiStoragePair_ImGuiStoragePairInt(_key u32, _val_i int) &C.ImGuiStoragePair
 // fn C.ImGuiStoragePair_destroy(self &ImGuiStoragePair)
 // fn C.ImGuiStoragePair_ImGuiStoragePairFloat(_key u32, _val_f f32) &ImGuiStoragePair
@@ -434,7 +520,8 @@ fn C.ImGuiStorage_SetVoidPtr(self &C.ImGuiStorage, key u32, val voidptr)
 fn C.ImGuiStorage_GetIntRef(self &C.ImGuiStorage, key u32, default_val int) &int
 fn C.ImGuiStorage_GetBoolRef(self &C.ImGuiStorage, key u32, default_val bool) &bool
 fn C.ImGuiStorage_GetFloatRef(self &C.ImGuiStorage, key u32, default_val f32) &f32
-fn C.ImGuiStorage_GetVoidPtrRef(self &C.ImGuiStorage, key u32, default_val voidptr) &voidptr /* void** */
+
+// fn C.ImGuiStorage_GetVoidPtrRef(self &C.ImGuiStorage, key u32, default_val voidptr) &voidptr /* void** */
 fn C.ImGuiStorage_SetAllInt(self &C.ImGuiStorage, val int)
 fn C.ImGuiStorage_BuildSortByKey(self &C.ImGuiStorage)
 fn C.ImGuiListClipper_ImGuiListClipper(items_count int, items_height f32) &C.ImGuiListClipper
@@ -495,7 +582,7 @@ fn C.ImDrawList_PathArcTo(self &C.ImDrawList, center C.ImVec2, radius f32, a_min
 fn C.ImDrawList_PathArcToFast(self &C.ImDrawList, center C.ImVec2, radius f32, a_min_of_12 int, a_max_of_12 int)
 fn C.ImDrawList_PathBezierCurveTo(self &C.ImDrawList, p1 C.ImVec2, p2 C.ImVec2, p3 C.ImVec2, num_segments int)
 fn C.ImDrawList_PathRect(self &C.ImDrawList, rect_min C.ImVec2, rect_max C.ImVec2, rounding f32, rounding_corners int)
-fn C.ImDrawList_AddCallback(self &C.ImDrawList, callback fn(&C.ImDrawList, &C.ImDrawCmd), callback_data voidptr)
+fn C.ImDrawList_AddCallback(self &C.ImDrawList, callback fn (&C.ImDrawList, &C.ImDrawCmd), callback_data voidptr)
 fn C.ImDrawList_AddDrawCmd(self &C.ImDrawList)
 fn C.ImDrawList_CloneOutput(self &C.ImDrawList) &C.ImDrawList
 fn C.ImDrawList_ChannelsSplit(self &C.ImDrawList, count int)
@@ -527,6 +614,7 @@ fn C.ImFontGlyphRangesBuilder_SetBit(self &C.ImFontGlyphRangesBuilder, n int)
 fn C.ImFontGlyphRangesBuilder_AddChar(self &C.ImFontGlyphRangesBuilder, c u16)
 fn C.ImFontGlyphRangesBuilder_AddText(self &C.ImFontGlyphRangesBuilder, text byteptr, text_end byteptr)
 fn C.ImFontGlyphRangesBuilder_AddRanges(self &C.ImFontGlyphRangesBuilder, ranges &u16)
+
 // fn C.ImFontGlyphRangesBuilder_BuildRanges(self &C.ImFontGlyphRangesBuilder, out_ranges &ImVector<ImWchar>)
 fn C.ImFontAtlasCustomRect_ImFontAtlasCustomRect() &C.ImFontAtlasCustomRect
 fn C.ImFontAtlasCustomRect_destroy(self &C.ImFontAtlasCustomRect)
@@ -544,8 +632,9 @@ fn C.ImFontAtlas_ClearTexData(self &C.ImFontAtlas)
 fn C.ImFontAtlas_ClearFonts(self &C.ImFontAtlas)
 fn C.ImFontAtlas_Clear(self &C.ImFontAtlas)
 fn C.ImFontAtlas_Build(self &C.ImFontAtlas) bool
-fn C.ImFontAtlas_GetTexDataAsAlpha8(self &C.ImFontAtlas, out_pixels &voidptr /* unsigned char** */, out_width &int, out_height &int, out_bytes_per_pixel &int)
-fn C.ImFontAtlas_GetTexDataAsRGBA32(self &C.ImFontAtlas, out_pixels &voidptr /* unsigned char** */, out_width &int, out_height &int, out_bytes_per_pixel &int)
+
+// fn C.ImFontAtlas_GetTexDataAsAlpha8(self &C.ImFontAtlas, out_pixels &voidptr /* unsigned char** */, out_width &int, out_height &int, out_bytes_per_pixel &int)
+// fn C.ImFontAtlas_GetTexDataAsRGBA32(self &C.ImFontAtlas, out_pixels &voidptr /* unsigned char** */, out_width &int, out_height &int, out_bytes_per_pixel &int)
 fn C.ImFontAtlas_IsBuilt(self &C.ImFontAtlas) bool
 fn C.ImFontAtlas_SetTexID(self &C.ImFontAtlas, id voidptr)
 fn C.ImFontAtlas_GetGlyphRangesDefault(self &C.ImFontAtlas) &u16
@@ -568,7 +657,8 @@ fn C.ImFont_FindGlyphNoFallback(self &C.ImFont, c u16) &C.ImFontGlyph
 fn C.ImFont_GetCharAdvance(self &C.ImFont, c u16) f32
 fn C.ImFont_IsLoaded(self &C.ImFont) bool
 fn C.ImFont_GetDebugName(self &C.ImFont) byteptr
-fn C.ImFont_CalcTextSizeA(self &C.ImFont, size f32, max_width f32, wrap_width f32, text_begin byteptr, text_end byteptr, remaining &voidptr /* const char** */) C.ImVec2
+
+// fn C.ImFont_CalcTextSizeA(self &C.ImFont, size f32, max_width f32, wrap_width f32, text_begin byteptr, text_end byteptr, remaining &voidptr /* const char** */) C.ImVec2
 fn C.ImFont_CalcWordWrapPositionA(self &C.ImFont, scale f32, text byteptr, text_end byteptr, wrap_width f32) byteptr
 fn C.ImFont_RenderChar(self &C.ImFont, draw_list &C.ImDrawList, size f32, pos C.ImVec2, col u32, c u16)
 fn C.ImFont_RenderText(self &C.ImFont, draw_list &C.ImDrawList, size f32, pos C.ImVec2, col u32, clip_rect C.ImVec4, text_begin byteptr, text_end byteptr, wrap_width f32, cpu_fine_clip bool)
@@ -626,13 +716,15 @@ fn C.ImDrawList_GetClipRectMin_nonUDT(pOut &C.ImVec2, self &C.ImDrawList)
 fn C.ImDrawList_GetClipRectMin_nonUDT2(self &C.ImDrawList) C.ImVec2_Simple
 fn C.ImDrawList_GetClipRectMax_nonUDT(pOut &C.ImVec2, self &C.ImDrawList)
 fn C.ImDrawList_GetClipRectMax_nonUDT2(self &C.ImDrawList) C.ImVec2_Simple
-fn C.ImFont_CalcTextSizeA_nonUDT(pOut &C.ImVec2, self &C.ImFont, size f32, max_width f32, wrap_width f32, text_begin byteptr, text_end byteptr, remaining &voidptr /* const char** */)
-fn C.ImFont_CalcTextSizeA_nonUDT2(self &C.ImFont, size f32, max_width f32, wrap_width f32, text_begin byteptr, text_end byteptr, remaining &voidptr /* const char** */) C.ImVec2_Simple
+
+// fn C.ImFont_CalcTextSizeA_nonUDT(pOut &C.ImVec2, self &C.ImFont, size f32, max_width f32, wrap_width f32, text_begin byteptr, text_end byteptr, remaining &voidptr /* const char** */)
+// fn C.ImFont_CalcTextSizeA_nonUDT2(self &C.ImFont, size f32, max_width f32, wrap_width f32, text_begin byteptr, text_end byteptr, remaining &voidptr /* const char** */) C.ImVec2_Simple
 fn C.igLogText(fmt byteptr)
 fn C.ImGuiTextBuffer_appendf(buffer &C.ImGuiTextBuffer, fmt byteptr)
 fn C.igGET_FLT_MAX() f32
 fn C.igColorConvertRGBtoHSV(r f32, g f32, b f32, out_h &f32, out_s &f32, out_v &f32)
 fn C.igColorConvertHSVtoRGB(h f32, s f32, v f32, out_r &f32, out_g &f32, out_b &f32)
+
 // fn C.ImVector_ImWchar_create() &ImVector<ImWchar>
 // fn C.ImVector_ImWchar_destroy(self &ImVector<ImWchar>)
 // fn C.ImVector_ImWchar_Init(p &ImVector<ImWchar>)

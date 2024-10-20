@@ -62,23 +62,23 @@ type Post_identify_callback = fn (voidptr)
 type Process_step_callback = fn (voidptr)
 
 struct Libraw_callbacks_t {
-	data_cb               Data_callback
+	data_cb               Data_callback = unsafe { nil }
 	datacb_data           voidptr
-	progress_cb           Progress_callback
+	progress_cb           Progress_callback = unsafe { nil }
 	progresscb_data       voidptr
-	exif_cb               Exif_parser_callback
+	exif_cb               Exif_parser_callback = unsafe { nil }
 	exifparser_data       voidptr
-	pre_identify_cb       Pre_identify_callback
-	post_identify_cb      Post_identify_callback
-	pre_subtractblack_cb  Process_step_callback
-	pre_scalecolors_cb    Process_step_callback
-	pre_preinterpolate_cb Process_step_callback
-	pre_interpolate_cb    Process_step_callback
-	interpolate_bayer_cb  Process_step_callback
-	interpolate_xtrans_cb Process_step_callback
-	post_interpolate_cb   Process_step_callback
-	pre_converttorgb_cb   Process_step_callback
-	post_converttorgb_cb  Process_step_callback
+	pre_identify_cb       Pre_identify_callback = unsafe { nil }
+	post_identify_cb      Post_identify_callback = unsafe { nil }
+	pre_subtractblack_cb  Process_step_callback = unsafe { nil }
+	pre_scalecolors_cb    Process_step_callback = unsafe { nil }
+	pre_preinterpolate_cb Process_step_callback = unsafe { nil }
+	pre_interpolate_cb    Process_step_callback = unsafe { nil }
+	interpolate_bayer_cb  Process_step_callback = unsafe { nil }
+	interpolate_xtrans_cb Process_step_callback = unsafe { nil }
+	post_interpolate_cb   Process_step_callback = unsafe { nil }
+	pre_converttorgb_cb   Process_step_callback = unsafe { nil }
+	post_converttorgb_cb  Process_step_callback = unsafe { nil }
 }
 
 @[typedef]

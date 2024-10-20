@@ -1,4 +1,3 @@
-
 module libraw
 
 import builtin.wchar
@@ -11,22 +10,22 @@ import builtin.wchar
 // *LibRaw C++ interface
 // *
 //
-//LibRaw is free software; you can redistribute it and/or modify
-//it under the terms of the one of two licenses as you choose:
+// LibRaw is free software; you can redistribute it and/or modify
+// it under the terms of the one of two licenses as you choose:
 //
-//1. GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+// 1. GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 //   (See file LICENSE.LGPL provided in LibRaw distribution archive for details).
 //
-//2. COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
+// 2. COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 //   (See file LICENSE.CDDL provided in LibRaw distribution archive for details).
 //
 //
-// maximum file size to use LibRaw_file_datastream (fully buffered) I/O 
-// better WIN32 defines 
-// better WIN32 defines 
-// Win32 API 
-// DLLs: Microsoft or Intel compiler 
-// wchar_t*API for std::filebuf 
+// maximum file size to use LibRaw_file_datastream (fully buffered) I/O
+// better WIN32 defines
+// better WIN32 defines
+// Win32 API
+// DLLs: Microsoft or Intel compiler
+// wchar_t*API for std::filebuf
 fn C.libraw_strerror(errorcode int) &i8
 
 pub fn libraw_strerror(errorcode int) &i8 {
@@ -39,7 +38,7 @@ pub fn libraw_strprogress(arg0 int) &i8 {
 	return C.libraw_strprogress(arg0)
 }
 
-// LibRaw C API 
+// LibRaw C API
 fn C.libraw_init(flags ConstructorFlags) &Libraw_data_t
 
 pub fn libraw_init(flags ConstructorFlags) &Libraw_data_t {
@@ -55,10 +54,10 @@ pub fn libraw_open_file(ctx &Libraw_data_t, file string) LibRawErrors {
 
 // Character = wchar_t in https://github.com/vlang/v/blob/master/vlib/builtin/wchar/wchar.c.v
 fn C.libraw_open_wfile(arg0 &Libraw_data_t, arg1 &wchar.Character) int
-// fn C.libraw_open_wfile(arg0 &Libraw_data_t, arg1 &char) int
 
+// fn C.libraw_open_wfile(arg0 &Libraw_data_t, arg1 &char) int
 pub fn libraw_open_wfile(arg0 &Libraw_data_t, arg1 &wchar.Character) int {
-// pub fn libraw_open_wfile(arg0 &Libraw_data_t, arg1 &char) int {
+	// pub fn libraw_open_wfile(arg0 &Libraw_data_t, arg1 &char) int {
 	return C.libraw_open_wfile(arg0, arg1)
 }
 
@@ -71,7 +70,9 @@ pub fn libraw_open_buffer(arg0 &Libraw_data_t, buffer voidptr, size usize) int {
 fn C.libraw_open_bayer(lr &Libraw_data_t, data &u8, datalen u32, _raw_width Ushort, _raw_height Ushort, _left_margin Ushort, _top_margin Ushort, _right_margin Ushort, _bottom_margin Ushort, procflags u8, bayer_battern u8, unused_bits u32, otherflags u32, black_level u32) int
 
 pub fn libraw_open_bayer(lr &Libraw_data_t, data &u8, datalen u32, _raw_width Ushort, _raw_height Ushort, _left_margin Ushort, _top_margin Ushort, _right_margin Ushort, _bottom_margin Ushort, procflags u8, bayer_battern u8, unused_bits u32, otherflags u32, black_level u32) int {
-	return C.libraw_open_bayer(lr, data, datalen, _raw_width, _raw_height, _left_margin, _top_margin, _right_margin, _bottom_margin, procflags, bayer_battern, unused_bits, otherflags, black_level)
+	return C.libraw_open_bayer(lr, data, datalen, _raw_width, _raw_height, _left_margin,
+		_top_margin, _right_margin, _bottom_margin, procflags, bayer_battern, unused_bits,
+		otherflags, black_level)
 }
 
 fn C.libraw_unpack(arg0 &Libraw_data_t) LibRawErrors
@@ -128,7 +129,7 @@ pub fn libraw_free_image(arg0 &Libraw_data_t) {
 	C.libraw_free_image(arg0)
 }
 
-// version helpers 
+// version helpers
 fn C.libraw_version() &char
 
 pub fn libraw_version() string {
@@ -141,7 +142,7 @@ pub fn libraw_version_number() int {
 	return C.libraw_versionNumber()
 }
 
-// Camera list 
+// Camera list
 fn C.libraw_cameraList() &&u8
 
 pub fn libraw_camera_list() &&u8 {
@@ -154,7 +155,7 @@ pub fn libraw_camera_count() int {
 	return C.libraw_cameraCount()
 }
 
-// helpers 
+// helpers
 fn C.libraw_set_exifparser_handler(arg0 &Libraw_data_t, cb Exif_parser_callback, datap voidptr)
 
 pub fn libraw_set_exifparser_handler(arg0 &Libraw_data_t, cb Exif_parser_callback, datap voidptr) {
@@ -203,7 +204,7 @@ pub fn libraw_adjust_to_raw_inset_crop(lr &Libraw_data_t, mask u32, maxcrop f32)
 	return C.libraw_adjust_to_raw_inset_crop(lr, mask, maxcrop)
 }
 
-// DCRAW compatibility 
+// DCRAW compatibility
 fn C.libraw_adjust_sizes_info_only(arg0 &Libraw_data_t) int
 
 pub fn libraw_adjust_sizes_info_only(arg0 &Libraw_data_t) int {
@@ -246,7 +247,7 @@ pub fn libraw_dcraw_clear_mem(arg0 &Libraw_processed_image_t) {
 	C.libraw_dcraw_clear_mem(arg0)
 }
 
-// getters/setters used by 3DLut Creator 
+// getters/setters used by 3DLut Creator
 fn C.libraw_set_demosaic(lr &Libraw_data_t, value int)
 
 pub fn libraw_set_demosaic(lr &Libraw_data_t, value int) {
@@ -379,29 +380,27 @@ pub fn libraw_get_imgother(lr &Libraw_data_t) &Libraw_imgother_t {
 	return C.libraw_get_imgother(lr)
 }
 
-// helpers 
-// dcraw emulation 
-// information calls 
-// memory writers 
-// Additional calls for make_mem_image 
-// free all internal data structures 
-// Special value 0+1+2+3 
-// Phase one correction/subtractBL calls 
-// Returns libraw error code 
-// Hotspots 
-// Fujifilm compressed decoder public interface (to make parallel decoder) 
-// CR3 decoder public interface to make parallel decoder 
+// helpers
+// dcraw emulation
+// information calls
+// memory writers
+// Additional calls for make_mem_image
+// free all internal data structures
+// Special value 0+1+2+3
+// Phase one correction/subtractBL calls
+// Returns libraw error code
+// Hotspots
+// Fujifilm compressed decoder public interface (to make parallel decoder)
+// CR3 decoder public interface to make parallel decoder
 // Panasonic Compression 8 parallel decoder stubs
 // return: 0 if OK, non-zero on error
-//void (LibRaw::*write_thumb)();
-//void (LibRaw::*thumb_load_raw)();
-// RawSpeed data 
-// returns LIBRAW_SUCCESS on success 
-// Fast cancel flag 
-// DNG SDK data 
-// X3F data 
+// void (LibRaw::*write_thumb)();
+// void (LibRaw::*thumb_load_raw)();
+// RawSpeed data
+// returns LIBRAW_SUCCESS on success
+// Fast cancel flag
+// DNG SDK data
+// X3F data
 // keep it even if USE_X3FTOOLS is not defined to do not change sizeof(LibRaw)
-// __cplusplus 
-// _LIBRAW_CLASS_H 
-
-
+// __cplusplus
+// _LIBRAW_CLASS_H
