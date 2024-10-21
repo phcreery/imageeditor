@@ -34,7 +34,7 @@ fn canvas_draw_image(state AppState) {
 
 	sgl.texture(state.rendered_image.image, state.rendered_image.sampler)
 	sgl.load_pipeline(state.rendered_image.pipeline)
-	sgl.c3f(state.rendered_image.color.r, state.rendered_image.color.g, state.rendered_image.color.b)
+	// sgl.c3f(state.rendered_image.color.r, state.rendered_image.color.g, state.rendered_image.color.b)
 	sgl.begin_quads()
 	sgl.v2f_t2f(x0, y0, 0.0, 0.0)
 	sgl.v2f_t2f(x1, y0, 1.0, 0.0)

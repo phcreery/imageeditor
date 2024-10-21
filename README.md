@@ -1,4 +1,4 @@
-# v image editor
+# PIE: Peyton's Image Editor
 
 ## Setup
 

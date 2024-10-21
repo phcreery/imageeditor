@@ -37,3 +37,11 @@ fn (mut fg FrameGovernor) sleep_remaining(last_frame_ms f64) {
 		eprintln('fps: ${thefps:5.1f} | last frame took: ${last_frame_ms:6.3f}ms | frame: ${game.frame:6} ')
 	}
 }
+
+fn (fg FrameGovernor) fps_max() f64 {
+	return arrays.max(fg.fps_history) or { 0.0 }
+}
+
+fn (fg FrameGovernor) fps_min() f64 {
+	return arrays.min(fg.fps_history) or { 0.0 }
+}

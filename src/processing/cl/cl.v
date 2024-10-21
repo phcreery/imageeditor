@@ -3,21 +3,6 @@ module cl
 import vsl.vcl
 import os
 
-// pub struct Image {
-// 	width       int
-// 	height      int
-// 	nr_channels int
-// mut:
-// 	data []u8
-// }
-
-// pub interface IImage {
-// 	width       int
-// 	height      int
-// 	nr_channels int
-// mut:
-// 	data []u8
-// }
 pub struct BackendCL {
 mut:
 	device &vcl.Device

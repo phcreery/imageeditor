@@ -16,7 +16,7 @@ struct UIWindowAbout implements CimguiState {
 pub mut:
 	is_open bool          = true
 	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 10}
-	size    cimgui.ImVec2 = cimgui.ImVec2{400, 100}
+	size    cimgui.ImVec2 = cimgui.ImVec2{400, 350}
 
 	cimgui_version string = cimgui.get_version()
 	libraw_version string = libraw.libraw_version()
@@ -46,11 +46,11 @@ fn draw_about_window(mut state AppState) {
 	cimgui.text('Backend: ${state.pipeline.backend.name}')
 	cimgui.text('Backend version: ${state.pipeline.backend.version}')
 
-	cimgui.text('FPS: ${state.fg.fps}')
-	cimgui.text('Duty cycle: ${state.fg.duty_cycle}')
-
+	cimgui.text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})')
 	cimgui.plot_lines_float_ptr('FPS', state.fg.fps_history.data, 100, 0, '', 0, 120,
 		cimgui.ImVec2{0, 80}, sizeof(f32))
+
+	cimgui.text('Duty cycle: ${state.fg.duty_cycle}')
 	cimgui.plot_lines_float_ptr('Duty cycle', state.fg.duty_history.data, 100, 0, '',
 		0, 1, cimgui.ImVec2{0, 80}, sizeof(f32))
 
@@ -60,7 +60,7 @@ fn draw_about_window(mut state AppState) {
 
 fn draw_edit_window(mut state AppState) {
 	mut changed := false
-	window_pos := cimgui.ImVec2{10, 120}
+	window_pos := cimgui.ImVec2{10, 370}
 	window_pivot := cimgui.ImVec2{0, 0}
 	cimgui.set_next_window_pos(window_pos, .im_gui_cond_once, window_pivot)
 	window_size := cimgui.ImVec2{400, 100}
@@ -68,17 +68,22 @@ fn draw_edit_window(mut state AppState) {
 
 	p_open := false
 	cimgui.begin('Hello Dear ImGui from V!', &p_open, .none_)
-	cimgui.color_edit3('Background', &state.pass_action.colors[0].clear_value.r, 0)
-	changed ||= cimgui.checkbox('Invert', &state.pipeline.invert.enabled)
+	// cimgui.color_edit3('Background', &state.pass_action.colors[0].clear_value.r, 0)
+	// changed ||= cimgui.checkbox('Invert', &state.pipeline.invert.enabled)
 	// dump(changed)
 	// changed ||= cimgui.checkbox('Grayscale', &state.pipeline.grayscale)
-	state.pipeline.dirty = changed
+
+	for mut edit in state.pipeline.edits {
+		changed ||= edit.draw()
+	}
+
+	state.pipeline.dirty ||= changed
 	cimgui.end()
 }
 
 fn draw_windows(mut state AppState) {
 	// show_demo_window := true
-	// cimgui.show_metrics_window(show_demo_window)
+	// cimgui.show_metrics_window(&show_demo_window)
 
 	draw_about_window(mut state)
 	draw_edit_window(mut state)
@@ -97,27 +102,6 @@ fn event(ev &sapp.Event, mut state AppState) {
 			match ev.key_code {
 				.space {
 					state.rendered_image.reset_params()
-				}
-				._1 {
-					state.rendered_image.color.r = if state.rendered_image.color.r == 0.0 {
-						1
-					} else {
-						0
-					}
-				}
-				._2 {
-					state.rendered_image.color.r = if state.rendered_image.color.r == 0.0 {
-						1
-					} else {
-						0
-					}
-				}
-				._3 {
-					state.rendered_image.color.r = if state.rendered_image.color.r == 0.0 {
-						1
-					} else {
-						0
-					}
 				}
 				else {
 					println('idk')

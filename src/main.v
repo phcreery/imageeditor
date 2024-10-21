@@ -83,17 +83,14 @@ fn init(mut state AppState) {
 	state.original_image = imageio.load_image_raw(image_path)
 	state.processed_image = state.original_image.clone()
 
-	// TESTING
-	// processing.invert(mut image)
-	// END TESTING
+	render_image(mut state, state.original_image)
+	state.rendered_image.reset_params()
 
-	create_image(mut state, state.original_image)
 	// state.backend = processing.Backend.new()
 	state.pipeline = edit.init_pipeline()
 }
 
-fn create_image(mut state AppState, image imageio.Image) {
-	state.rendered_image.reset_params()
+fn render_image(mut state AppState, image imageio.Image) {
 	state.rendered_image.width = f32(image.width)
 	state.rendered_image.height = f32(image.height)
 
@@ -121,8 +118,7 @@ fn frame(mut state AppState) {
 		// do processing
 		println('processing')
 		state.pipeline.process(state.original_image, mut state.processed_image)
-		create_image(mut state, state.processed_image)
-		state.pipeline.dirty = false
+		render_image(mut state, state.processed_image)
 	}
 
 	frame_duration := sapp.frame_duration()

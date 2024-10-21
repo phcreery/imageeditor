@@ -27,16 +27,12 @@ pub mut:
 	height   f32
 	scale    f32
 	offset   Offset
-	color    Color
 }
 
 fn (mut image GfxImage) reset_params() {
 	image.scale = 0.1
 	image.offset.x = 0.0
 	image.offset.y = 0.0
-	image.color.r = 1.0
-	image.color.g = 1.0
-	image.color.b = 1.0
 }
 
 fn (mut image GfxImage) move(dx f32, dy f32) {

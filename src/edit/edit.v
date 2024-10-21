@@ -1,14 +1,11 @@
 module edit
 
-pub interface IImage {
-	width  int
-	height int
-mut:
-	data []u8
-}
+import imageio
+import processing
 
 interface Edit {
+mut:
 	enabled bool
-	process(img IImage) IImage
+	process(mut backend processing.Backend, img imageio.Image, mut new_img imageio.Image)
 	draw() bool
 }
