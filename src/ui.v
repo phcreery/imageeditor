@@ -38,13 +38,12 @@ fn draw_about_window(mut state AppState) {
 	// begin
 	cimgui.begin('About', &state.windows.about.is_open, .none_)
 	// content
-	cimgui.text('imageeditor')
+	cimgui.text("PIE: Peyton's Image Editor")
 	cimgui.text('v hash: ${@VHASH}')
 	cimgui.text('build date: ${@BUILD_DATE} ${@BUILD_TIME}')
 	cimgui.text('cimgui version: ${state.windows.about.cimgui_version}')
 	cimgui.text('LibRaw version: ${state.windows.about.libraw_version}')
-	cimgui.text('Backend: ${state.pipeline.backend.name}')
-	cimgui.text('Backend version: ${state.pipeline.backend.version}')
+	cimgui.text('Backend: ${state.pipeline.backend.name} (${state.pipeline.backend.version})')
 
 	cimgui.text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})')
 	cimgui.plot_lines_float_ptr('FPS', state.fg.fps_history.data, 100, 0, '', 0, 120,
@@ -67,7 +66,7 @@ fn draw_edit_window(mut state AppState) {
 	cimgui.set_next_window_size(window_size, .im_gui_cond_once)
 
 	p_open := false
-	cimgui.begin('Hello Dear ImGui from V!', &p_open, .none_)
+	cimgui.begin('Basic Edits', &p_open, .none_)
 	// cimgui.color_edit3('Background', &state.pass_action.colors[0].clear_value.r, 0)
 	// changed ||= cimgui.checkbox('Invert', &state.pipeline.invert.enabled)
 	// dump(changed)

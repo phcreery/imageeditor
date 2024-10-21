@@ -13,7 +13,7 @@ mut:
 	shutdown()
 
 	// edits
-	invert(img imageio.Image) imageio.Image
+	invert(img imageio.Image, mut new_img imageio.Image)
 }
 
 pub fn Backend.new() Backend {

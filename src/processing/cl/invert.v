@@ -1,6 +1,5 @@
 module cl
 
-// import processing.image as img
 import arrays
 import os
 import stbi
@@ -8,9 +7,8 @@ import imageio
 
 const invert_color_kernel = os.read_file(os.join_path(root, 'kernels/invert.cl')) or { panic(err) }
 
-// const root = os.dir(@FILE)
-pub fn (mut backend BackendCL) invert(image imageio.Image) imageio.Image {
-	println('first 4 pixels of original image: ${image.data[0..16]}')
+pub fn (mut backend BackendCL) invert(image imageio.Image, mut new_image imageio.Image) {
+	// println('first 4 pixels of original image: ${image.data[0..16]}')
 
 	// Create image buffer (image2d_t) to read_only
 	stbi_img := stbi.Image{
@@ -46,14 +44,8 @@ pub fn (mut backend BackendCL) invert(image imageio.Image) imageio.Image {
 	next_inverted_img := inverted_vcl_image.data() or { panic(err) }
 	mut data := unsafe { arrays.carray_to_varray[u8](next_inverted_img.data, next_inverted_img.width * next_inverted_img.height * 4) }
 
-	println('first 4 pixels of inverted image: ${data[0..16]}')
+	// println('first 4 pixels of inverted image: ${data[0..16]}')
+	new_image.data = data
 
-	// image.data = data
-	new_image := imageio.Image{
-		width:  image.width
-		height: image.height
-		data:   data.data
-	}
-
-	return new_image
+	// return new_image
 }

@@ -2,6 +2,7 @@ module edit
 
 // import processing.image
 import processing
+import processing.bench
 import imageio
 
 pub struct Pipeline {
@@ -21,15 +22,21 @@ pub fn init_pipeline() Pipeline {
 }
 
 pub fn (mut pipeline Pipeline) process(img imageio.Image, mut new_img imageio.Image) {
+	// make new_img a copy of img
 	new_img.data = img.data
 
-	// if pipeline.invert.enabled {
-	// 	new_img = pipeline.backend.invert(img)
-	// }
+	mut benchmark_total := bench.Benchmark.new('Total')
+
+	// process edits
 	for mut edit in pipeline.edits {
 		if edit.enabled {
+			mut benchmark_edit := bench.Benchmark.new(edit.name)
 			edit.process(mut pipeline.backend, img, mut new_img)
+			benchmark_edit.finish()
 		}
 	}
+
+	benchmark_total.finish()
+
 	pipeline.dirty = false
 }

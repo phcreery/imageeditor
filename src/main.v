@@ -5,7 +5,6 @@ import sokol.gfx
 import sokol.sgl
 import libs.sokolext as _
 import libs.sokolext.simgui
-import processing
 import edit
 import imageio
 
@@ -109,14 +108,14 @@ fn render_image(mut state AppState, image imageio.Image) {
 	}
 
 	state.rendered_image.image = gfx.make_image(&image_desc)
-	println('rendered_image created')
-	dump(state.rendered_image.image)
+	// println('rendered_image created')
+	// dump(state.rendered_image.image)
 }
 
 fn frame(mut state AppState) {
 	if state.pipeline.dirty {
 		// do processing
-		println('processing')
+		// println('processing')
 		state.pipeline.process(state.original_image, mut state.processed_image)
 		render_image(mut state, state.processed_image)
 	}
@@ -157,14 +156,14 @@ fn frame(mut state AppState) {
 }
 
 fn cleanup(mut state AppState) {
-	// state.backend.shutdown()
+	state.pipeline.backend.shutdown()
 	simgui.shutdown()
 	sgl.shutdown()
 	gfx.shutdown()
 }
 
 fn main() {
-	title := "Peyton's Image Editor"
+	title := "PIE: Peyton's Image Editor"
 
 	mut state := &AppState{}
 	desc := sapp.Desc{

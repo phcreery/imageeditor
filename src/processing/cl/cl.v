@@ -3,6 +3,8 @@ module cl
 import vsl.vcl
 import os
 
+const root = os.dir(@FILE)
+
 pub struct BackendCL {
 mut:
 	device &vcl.Device
@@ -11,8 +13,6 @@ pub:
 	version string
 	status  string
 }
-
-const root = os.dir(@FILE)
 
 pub fn create_backend_cl() BackendCL {
 	mut device := vcl.get_default_device() or { panic(err) }
