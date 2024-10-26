@@ -2,8 +2,8 @@ module edit
 
 // import processing.image
 import processing
-import processing.bench
 import imageio
+import benchmark
 
 pub struct Pipeline {
 pub mut:
@@ -25,18 +25,14 @@ pub fn (mut pipeline Pipeline) process(img imageio.Image, mut new_img imageio.Im
 	// make new_img a copy of img
 	new_img.data = img.data
 
-	mut benchmark_total := bench.Benchmark.new('Total')
+	mut b := benchmark.start()
 
 	// process edits
 	for mut edit in pipeline.edits {
 		if edit.enabled {
-			mut benchmark_edit := bench.Benchmark.new(edit.name)
 			edit.process(mut pipeline.backend, img, mut new_img)
-			benchmark_edit.finish()
+			b.measure('process ${edit.name}')
 		}
 	}
-
-	benchmark_total.finish()
-
 	pipeline.dirty = false
 }

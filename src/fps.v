@@ -2,6 +2,7 @@ module main
 
 import time
 import arrays
+import math
 
 struct FrameGovernor {
 mut:
@@ -15,27 +16,25 @@ pub mut:
 	duty_history []f32 = []f32{len: 100, init: 0}
 }
 
-fn (mut fg FrameGovernor) sleep_remaining(last_frame_ms f64) {
-	total_frame_ms := f64(fg.frame_sw.elapsed().microseconds()) / 1000.0
+fn (mut fg FrameGovernor) begin_frame() {
 	fg.frame_sw.restart()
-	if fg.target_fps > 0.0 {
-		target_frame_ms := 1000.0 / fg.target_fps
-		if last_frame_ms < target_frame_ms {
-			time.sleep((target_frame_ms - last_frame_ms) * 1000000.0)
-		}
+}
+
+fn (mut fg FrameGovernor) sleep_remaining() {
+	total_frame_ms := f64(fg.frame_sw.elapsed().milliseconds())
+	target_frame_ms := 1000.0 / fg.target_fps
+	sleep_time := math.max(0.0, target_frame_ms - total_frame_ms)
+	if fg.target_fps > 0.0 && total_frame_ms < target_frame_ms {
+		time.sleep(sleep_time * time.millisecond)
 	}
-	fg.fps = 1.0 / (total_frame_ms / 1000.0)
-	fg.duty_cycle = last_frame_ms / (1000.0 / fg.target_fps)
+	fg.fps = 1.0 / ((total_frame_ms + sleep_time) / 1000.0)
+	fg.duty_cycle = total_frame_ms / target_frame_ms
 
 	// update history
 	arrays.rotate_right(mut &fg.fps_history, 1)
 	fg.fps_history[0] = f32(fg.fps)
 	arrays.rotate_right(mut &fg.duty_history, 1)
 	fg.duty_history[0] = f32(fg.duty_cycle)
-
-	$if debug {
-		eprintln('fps: ${thefps:5.1f} | last frame took: ${last_frame_ms:6.3f}ms | frame: ${game.frame:6} ')
-	}
 }
 
 fn (fg FrameGovernor) fps_max() f64 {

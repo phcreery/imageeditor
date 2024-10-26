@@ -113,19 +113,17 @@ fn render_image(mut state AppState, image imageio.Image) {
 }
 
 fn frame(mut state AppState) {
+	state.fg.begin_frame()
 	if state.pipeline.dirty {
 		// do processing
 		// println('processing')
 		state.pipeline.process(state.original_image, mut state.processed_image)
 		render_image(mut state, state.processed_image)
 	}
-
-	frame_duration := sapp.frame_duration()
-	state.fg.sleep_remaining(frame_duration)
 	desc := simgui.SimguiFrameDesc{
 		width:      sapp.width()
 		height:     sapp.height()
-		delta_time: frame_duration
+		delta_time: sapp.frame_duration()
 		dpi_scale:  sapp.dpi_scale()
 	}
 	simgui.new_frame(desc)
@@ -153,6 +151,8 @@ fn frame(mut state AppState) {
 	simgui.render()
 	gfx.end_pass()
 	gfx.commit()
+
+	state.fg.sleep_remaining()
 }
 
 fn cleanup(mut state AppState) {
