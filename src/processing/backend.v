@@ -1,6 +1,5 @@
 module processing
 
-// import processing.image
 import cl
 import imageio
 
@@ -10,10 +9,13 @@ interface Backend {
 	version string
 mut:
 	init()
+	load_image(image imageio.Image)
+	read_image(mut image imageio.Image)
+	swap_images()
 	shutdown()
 
 	// edits
-	invert(img imageio.Image, mut new_img imageio.Image)
+	invert()
 }
 
 pub fn Backend.new() Backend {

@@ -27,12 +27,32 @@ pub fn (mut pipeline Pipeline) process(img imageio.Image, mut new_img imageio.Im
 
 	mut b := benchmark.start()
 
+	// don't process if no edits are enabled
+	mut any_enabled := false
+	for mut edit in pipeline.edits {
+		if edit.enabled {
+			any_enabled = true
+			break
+		}
+	}
+	if !any_enabled {
+		pipeline.dirty = false
+		return
+	}
+
+	pipeline.backend.load_image(img)
+	b.measure('load_image')
+
 	// process edits
 	for mut edit in pipeline.edits {
 		if edit.enabled {
-			edit.process(mut pipeline.backend, img, mut new_img)
+			edit.process(mut pipeline.backend)
 			b.measure('process ${edit.name}')
 		}
 	}
+
+	pipeline.backend.read_image(mut new_img)
+	b.measure('read_image')
+
 	pipeline.dirty = false
 }

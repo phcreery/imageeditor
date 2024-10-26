@@ -2,7 +2,6 @@ module edit
 
 import processing
 import libs.cimgui
-import imageio
 
 pub struct Invert implements Edit {
 	name string = 'Invert'
@@ -16,8 +15,8 @@ fn Invert.new() Invert {
 	}
 }
 
-pub fn (invert Invert) process(mut backend processing.Backend, img imageio.Image, mut new_img imageio.Image) {
-	backend.invert(img, mut new_img)
+pub fn (invert Invert) process(mut backend processing.Backend) {
+	backend.invert()
 }
 
 pub fn (mut invert Invert) draw() bool {
