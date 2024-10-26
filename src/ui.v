@@ -97,8 +97,21 @@ fn event(ev &sapp.Event, mut state AppState) {
 		.files_dropped {
 			println('files dropped')
 		}
+		.key_down {
+			match ev.key_code {
+				.backslash {
+					render_image(mut state, state.original_image)
+				}
+				else {
+					println('idk')
+				}
+			}
+		}
 		.key_up {
 			match ev.key_code {
+				.backslash {
+					render_image(mut state, state.processed_image)
+				}
 				.space {
 					state.rendered_image.reset_params()
 				}
