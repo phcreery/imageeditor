@@ -36,12 +36,11 @@ pub mut:
 }
 
 pub struct Image {
-pub:
+pub mut:
 	width       int
 	height      int
 	nr_channels int
-pub mut:
-	data []u8
+	data        []u8
 }
 
 @[direct_array_access]
@@ -149,6 +148,61 @@ pub fn load_image_raw(image_path string) Image {
 		data:        data
 	}
 	return image
+}
+
+pub fn load_image_raw2(image_path string, shared image Image) {
+	libraw_data := libraw.libraw_init(.none_)
+	println('libraw initialized')
+
+	// Open the file and read the metadata
+	mut status := libraw.libraw_open_file(libraw_data, image_path)
+	println('file opened ${status}')
+
+	// The metadata are accessible through data fields
+	// dump(libraw_data.image)
+
+	// Let us unpack the image
+	status = libraw.libraw_unpack(libraw_data)
+	println('unpacked ${status}')
+
+	// Convert from imgdata.rawdata to imgdata.image using raw2image
+	// status = libraw.libraw_raw2image(libraw_data)
+	// println('raw2image ${status}')
+	// dump(libraw_data.image)
+	// buffer_size := libraw_data.sizes.iwidth * libraw_data.sizes.iheight
+	// r := arrays.carray_to_varray[i16](libraw_data.image[0], buffer_size)
+	// g := arrays.carray_to_varray[i16](libraw_data.image[1], buffer_size)
+	// b := arrays.carray_to_varray[i16](libraw_data.image[2], buffer_size)
+	// g2 := arrays.carray_to_varray[i16](libraw_data.image[3], buffer_size)
+
+	// Convert from imgdata.rawdata to imgdata.image using dcraw_process
+	status = libraw.libraw_dcraw_process(libraw_data)
+	println('dcraw_process ${status}')
+	libraw_processed_image := libraw.libraw_dcraw_make_mem_image(libraw_data, &status)
+	println('dcraw_make_mem_image ${status}')
+	dump(libraw_processed_image)
+
+	println('libraw_processed_image.data ${libraw_processed_image.data}')
+
+	mut data := unsafe { arrays.carray_to_varray[u8](libraw_processed_image.data, libraw_processed_image.data_size) }
+
+	println(libraw_processed_image.colors)
+
+	if libraw_processed_image.colors == 3 {
+		println('converting from RGB to RGBA')
+		mut data_rgba := []u8{len: int(libraw_processed_image.width * libraw_processed_image.height * 4)}
+		buf_rgb_to_rgba(mut data_rgba, data, libraw_processed_image.width * libraw_processed_image.height)
+		data = data_rgba.clone()
+	}
+	println('data_rgba first 4 bytes ${data[0]} ${data[1]} ${data[2]} ${data[3]}')
+
+	// image
+	lock image {
+		image.width = libraw_processed_image.width
+		image.height = libraw_processed_image.height
+		image.nr_channels = 4
+		image.data = data
+	}
 }
 
 pub fn (img Image) save_bmp(image_path string) {

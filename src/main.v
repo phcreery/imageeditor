@@ -7,6 +7,7 @@ import libs.sokolext as _
 import libs.sokolext.simgui
 import edit
 import imageio
+import time
 
 struct Color {
 mut:
@@ -25,14 +26,14 @@ pub mut:
 pub struct AppState {
 mut:
 	pass_action     gfx.PassAction
+	catalog         imageio.Catalog
 	original_image  imageio.Image
 	processed_image imageio.Image
 	rendered_image  GfxImage
-	checkerboard    GfxCheckerboard
+	checkerboard    GfxTexture
 	windows         UIWindows
-	// backend         processing.Backend
-	pipeline edit.Pipeline
-	fg       FrameGovernor
+	pipeline        edit.Pipeline
+	fg              FrameGovernor
 }
 
 fn init(mut state AppState) {
@@ -67,8 +68,12 @@ fn init(mut state AppState) {
 		// clear_value: gfx.Color{0.0, 0.5, 1.0, 0.5}
 	}
 
-	init_image(mut state)
-	init_bg(mut state)
+	// init_image(mut state)
+	// init_bg(mut state)
+
+	state.rendered_image = GfxImage.new()
+	state.checkerboard = GfxTexture.new_checkerboard()
+
 	state.fg = FrameGovernor{
 		target_fps: 30.0
 	}
@@ -79,37 +84,53 @@ fn init(mut state AppState) {
 	// mut image := load_image(image_path)
 
 	image_path := 'sample/DSC_6765.NEF'
-	state.original_image = imageio.load_image_raw(image_path)
+	// state.original_image = imageio.load_image_raw(image_path)
+
+	// CONCURRENT WITH SHARED MEMORY TEST
+	// shared loaded_image := imageio.Image{
+	// 	width:  0
+	// 	height: 0
+	// 	data:   []
+	// }
+	// dump(loaded_image.data.data)
+
+	// mut threads := []thread{}
+	// threads << spawn imageio.load_image_raw2(image_path, shared loaded_image)
+	// dump(threads)
+	// threads.wait()
+	// dump(threads)
+
+	// rlock loaded_image {
+	// 	state.original_image = loaded_image.clone()
+	// }
+	// END CONCURRENT WITH SHARED MEMORY TEST
+
+	// CONCURRENT WITH CHANNEL TEST
+	state.catalog = imageio.Catalog.new()
+	state.catalog.spawn_load_images_by_path([image_path])
+	dump(state.catalog.images.len)
+	// exit
+
+	for {
+		if state.catalog.images.len != 0 {
+			image := state.catalog.images[0]
+			state.original_image = image.image or { continue }
+			dump('loaded image: ${image.path}')
+			break
+		} else {
+			dump('no images')
+		}
+		time.sleep(time.second / 2)
+	}
+	// exit(1)
+
+	// END CONCURRENT WITH CHANNEL TEST
+
 	state.processed_image = state.original_image.clone()
-
-	render_image(mut state, state.original_image)
+	// render_image(mut state, state.original_image)
+	state.rendered_image.update(state.original_image)
 	state.rendered_image.reset_params()
-
-	// state.backend = processing.Backend.new()
 	state.pipeline = edit.init_pipeline()
-}
-
-fn render_image(mut state AppState, image imageio.Image) {
-	state.rendered_image.width = f32(image.width)
-	state.rendered_image.height = f32(image.height)
-
-	// see v/sokol examples for create_texture()
-	mut tmp_imgdata := gfx.ImageData{}
-	tmp_imgdata.subimage[0][0] = gfx.Range{
-		ptr:  image.data.data
-		size: usize(image.width * image.height * 4)
-	}
-
-	image_desc := gfx.ImageDesc{
-		width:        image.width
-		height:       image.height
-		pixel_format: gfx.PixelFormat.rgba8 // rgb8 deprecated
-		data:         tmp_imgdata
-	}
-
-	state.rendered_image.image = gfx.make_image(&image_desc)
-	// println('rendered_image created')
-	// dump(state.rendered_image.image)
 }
 
 fn frame(mut state AppState) {
@@ -128,10 +149,6 @@ fn frame(mut state AppState) {
 	}
 	simgui.new_frame(desc)
 
-	// UI START
-	draw_windows(mut state)
-	// UI END
-
 	// SGL BEGIN
 	disp_w := f32(sapp.width())
 	disp_h := f32(sapp.height())
@@ -143,6 +160,10 @@ fn frame(mut state AppState) {
 	canvas_draw_checkerboard(state, disp_w, disp_h)
 	canvas_draw_image(state)
 	// SGL END
+
+	// UI START
+	draw_windows(mut state)
+	// UI END
 
 	// DRAW PASS
 	pass := sapp.create_default_pass(state.pass_action)
@@ -163,6 +184,7 @@ fn cleanup(mut state AppState) {
 }
 
 fn main() {
+	print_console_header()
 	title := "PIE: Peyton's Image Editor"
 
 	mut state := &AppState{}

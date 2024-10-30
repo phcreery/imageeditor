@@ -11,12 +11,21 @@ v -cc gcc -showcc -d vsl_vcl_dlopencl watch run .
 
 ## Misc
 
-### Updating & Wrapping LibRaw
-
 - Install clang (https://github.com/vovkos/llvm-package-windows/releases/clang-18.1.8)
   - `$env:Path += ';C:\Users\phcre\Downloads\clang-18.1.8-windows-amd64-msvc17-libcmt\bin'`
+  - `$env:Path += ';C:\mingw64-old\bin'`
+
+### Updating & Wrapping cimgui
+
+- `make cimgui`
+- Add `#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS` to `cimgui.h` before `#ifdef CIMGUI_DEFINE_ENUMS_AND_STRUCTS`
+- `c2v.exe wrapper '.\thirdparty\cimgui\cimgui.h'` or `v translate wrapper '.\thirdparty\cimgui\cimgui.h'`
+
+### Updating & Wrapping LibRaw
+
+- `make libraw`
 - Run c2v to wrap libraw header
-  - `./c2v.exe wrapper 'C:\Users\phcre\Documents\v\imageeditor\thirdparty\LibRaw\libraw\libraw.h'`
+  - `./c2v.exe wrapper '.\thirdparty\LibRaw\libraw\libraw.h'`
 
 ### Sources
 

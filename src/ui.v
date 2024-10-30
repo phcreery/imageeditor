@@ -22,8 +22,24 @@ pub mut:
 	libraw_version string = libraw.libraw_version()
 }
 
+struct UIWindowCatalog implements CimguiState {
+pub mut:
+	is_open bool          = true
+	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 370}
+	size    cimgui.ImVec2 = cimgui.ImVec2{400, 200}
+}
+
+struct UIWindowBasicEdits implements CimguiState {
+pub mut:
+	is_open bool          = true
+	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 580}
+	size    cimgui.ImVec2 = cimgui.ImVec2{400, 100}
+}
+
 struct UIWindows {
-	about UIWindowAbout
+	about   UIWindowAbout
+	basic   UIWindowBasicEdits
+	catalog UIWindowCatalog
 }
 
 fn draw_about_window(mut state AppState) {
@@ -57,16 +73,38 @@ fn draw_about_window(mut state AppState) {
 	cimgui.end()
 }
 
+fn draw_catalog_window(mut state AppState) {
+	if !state.windows.catalog.is_open {
+		return
+	}
+
+	// initialize
+	cimgui.set_next_window_pos(state.windows.catalog.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
+	cimgui.set_next_window_size(state.windows.catalog.size, .im_gui_cond_once)
+
+	// begin
+	cimgui.begin('Catalog', &state.windows.catalog.is_open, .none_)
+	// content
+	cimgui.text('Catalog')
+	// cimgui.begin_list_box('Catalog', cimgui.ImVec2{0, 200})
+	mut images := []string{}
+	for mut image in state.catalog.images {
+		images << image.path
+	}
+	// images << 'Another Image'
+	// images << 'Another Image2'
+	selected := 0
+	label := 'Catalog'
+	cimgui.list_box_str_arr(&label, &selected, images, 5)
+	// end
+	cimgui.end()
+}
+
 fn draw_edit_window(mut state AppState) {
 	mut changed := false
-	window_pos := cimgui.ImVec2{10, 370}
-	window_pivot := cimgui.ImVec2{0, 0}
-	cimgui.set_next_window_pos(window_pos, .im_gui_cond_once, window_pivot)
-	window_size := cimgui.ImVec2{400, 100}
-	cimgui.set_next_window_size(window_size, .im_gui_cond_once)
-
-	p_open := false
-	cimgui.begin('Basic Edits', &p_open, .none_)
+	cimgui.set_next_window_pos(state.windows.basic.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
+	cimgui.set_next_window_size(state.windows.basic.size, .im_gui_cond_once)
+	cimgui.begin('Basic Edits', &state.windows.basic.is_open, .none_)
 	// cimgui.color_edit3('Background', &state.pass_action.colors[0].clear_value.r, 0)
 	// changed ||= cimgui.checkbox('Invert', &state.pipeline.invert.enabled)
 	// dump(changed)
@@ -86,6 +124,7 @@ fn draw_windows(mut state AppState) {
 
 	draw_about_window(mut state)
 	draw_edit_window(mut state)
+	draw_catalog_window(mut state)
 }
 
 fn event(ev &sapp.Event, mut state AppState) {
@@ -103,7 +142,7 @@ fn event(ev &sapp.Event, mut state AppState) {
 					render_image(mut state, state.original_image)
 				}
 				else {
-					println('idk')
+					// println('idk')
 				}
 			}
 		}
@@ -116,7 +155,7 @@ fn event(ev &sapp.Event, mut state AppState) {
 					state.rendered_image.reset_params()
 				}
 				else {
-					println('idk')
+					// println('idk')
 				}
 			}
 		}

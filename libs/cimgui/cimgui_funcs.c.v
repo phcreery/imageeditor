@@ -306,7 +306,34 @@ fn C.igCollapsingHeaderBoolPtr(label byteptr, p_open &bool, flags int) bool
 fn C.igSetNextItemOpen(is_open bool, cond int)
 fn C.igSelectable(label byteptr, selected bool, flags int, size C.ImVec2) bool
 fn C.igSelectableBoolPtr(label byteptr, p_selected &bool, flags int, size C.ImVec2) bool
-fn C.igListBoxStr_arr(label byteptr, current_item &int, items []byteptr, items_count int, height_in_items int) bool
+
+// fn C.igListBox_Str_arr(label byteptr, current_item &int, items []&char, items_count int, height_in_items int) bool
+// pub fn list_box_str_arr(label string, current_item &int, items []string, height_in_items int) bool {
+// 	mut items_ptrs := []&char{len: items.len, init: 0}
+// 	for i, item in items {
+// 		items_ptrs[i] = item.str
+// 	}
+// 	return C.igListBox_Str_arr(label.str, current_item, items_ptrs, items.len, height_in_items)
+// }
+
+fn C.igListBox_Str_arr(label &i8, current_item &int, items &&u8, items_count int, height_in_items int) bool
+
+pub fn list_box_str_arr(label &string, current_item &int, items []string, height_in_items int) bool {
+	mut items_ptrs := []&char{len: items.len, init: 0}
+	for i, item in items {
+		items_ptrs[i] = item.str
+	}
+	if items.len == 0 {
+		items_ptrs = []&char{len: 1, init: 0}
+	}
+	return C.igListBox_Str_arr(label.str, current_item, &items_ptrs[0], items.len, height_in_items)
+}
+
+// igBeginListBox
+fn C.igBeginListBox(label byteptr, size C.ImVec2) bool
+pub fn begin_list_box(label string, size ImVec2) bool {
+	return C.igBeginListBox(label.str, size)
+}
 
 // fn C.igListBoxFnPtr(label byteptr, current_item &int, items_getter fn(voidptr, int, &voidptr /* const char** */) bool, data voidptr, items_count int, height_in_items int) bool
 fn C.igListBoxHeaderVec2(label byteptr, size C.ImVec2) bool
@@ -315,8 +342,8 @@ fn C.igListBoxFooter()
 fn C.igPlotLines_FloatPtr(label byteptr, values &f32, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2, stride int)
 
 pub fn plot_lines_float_ptr(label string, values &f32, values_count int, values_offset int, overlay_text string, scale_min f32, scale_max f32, graph_size ImVec2, stride int) {
-	C.igPlotLines_FloatPtr(label.str, values, values_count, values_offset, overlay_text.str, scale_min,
-		scale_max, graph_size, stride)
+	C.igPlotLines_FloatPtr(label.str, values, values_count, values_offset, overlay_text.str,
+		scale_min, scale_max, graph_size, stride)
 }
 
 fn C.igPlotLinesFnPtr(label byteptr, values_getter fn (voidptr, int) f32, data voidptr, values_count int, values_offset int, overlay_text byteptr, scale_min f32, scale_max f32, graph_size C.ImVec2)
