@@ -54,7 +54,7 @@ fn draw_about_window(mut state AppState) {
 	// begin
 	cimgui.begin('About', &state.windows.about.is_open, .none_)
 	// content
-	cimgui.text("PIE: Peyton's Image Editor")
+	cimgui.text("PIE: Peyton's Image Editor v${state.version}")
 	cimgui.text('v hash: ${@VHASH}')
 	cimgui.text('build date: ${@BUILD_DATE} ${@BUILD_TIME}')
 	cimgui.text('cimgui version: ${state.windows.about.cimgui_version}')
@@ -85,7 +85,7 @@ fn draw_catalog_window(mut state AppState) {
 	// begin
 	cimgui.begin('Catalog', &state.windows.catalog.is_open, .none_)
 	// content
-	cimgui.text('Catalog')
+	// cimgui.text('Catalog')
 	// cimgui.begin_list_box('Catalog', cimgui.ImVec2{0, 200})
 	mut images := []string{}
 	for mut image in state.catalog.images {
@@ -139,7 +139,7 @@ fn event(ev &sapp.Event, mut state AppState) {
 		.key_down {
 			match ev.key_code {
 				.backslash {
-					render_image(mut state, state.original_image)
+					state.rendered_image.update(state.original_image)
 				}
 				else {
 					// println('idk')
@@ -149,7 +149,7 @@ fn event(ev &sapp.Event, mut state AppState) {
 		.key_up {
 			match ev.key_code {
 				.backslash {
-					render_image(mut state, state.processed_image)
+					state.rendered_image.update(state.processed_image)
 				}
 				.space {
 					state.rendered_image.reset_params()

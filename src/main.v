@@ -8,6 +8,7 @@ import libs.sokolext.simgui
 import edit
 import imageio
 import time
+import v.vmod
 
 struct Color {
 mut:
@@ -24,6 +25,7 @@ pub mut:
 
 @[heap]
 pub struct AppState {
+	version string
 mut:
 	pass_action     gfx.PassAction
 	catalog         imageio.Catalog
@@ -126,10 +128,14 @@ fn init(mut state AppState) {
 
 	// END CONCURRENT WITH CHANNEL TEST
 
+	println('image loaded')
 	state.processed_image = state.original_image.clone()
-	// render_image(mut state, state.original_image)
+	println('image cloned')
+	state.rendered_image.create(state.original_image)
 	state.rendered_image.update(state.original_image)
+	println('image rendered')
 	state.rendered_image.reset_params()
+	println('image params reset')
 	state.pipeline = edit.init_pipeline()
 }
 
@@ -137,9 +143,9 @@ fn frame(mut state AppState) {
 	state.fg.begin_frame()
 	if state.pipeline.dirty {
 		// do processing
-		// println('processing')
+		println('processing')
 		state.pipeline.process(state.original_image, mut state.processed_image)
-		render_image(mut state, state.processed_image)
+		state.rendered_image.update(state.processed_image)
 	}
 	desc := simgui.SimguiFrameDesc{
 		width:      sapp.width()
@@ -184,10 +190,14 @@ fn cleanup(mut state AppState) {
 }
 
 fn main() {
-	print_console_header()
+	mod := vmod.decode(@VMOD_FILE) or { panic('Error decoding v.mod') }
+	print_console_header(mod.version)
 	title := "PIE: Peyton's Image Editor"
 
-	mut state := &AppState{}
+	mut state := &AppState{
+		version: mod.version
+	}
+
 	desc := sapp.Desc{
 		user_data:           state
 		init_userdata_cb:    init

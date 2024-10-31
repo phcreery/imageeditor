@@ -50,33 +50,6 @@ fn (mut image GfxImage) scale(d f32) {
 	}
 }
 
-// fn init_image(mut state AppState) {
-// 	// a sampler object for nearest mag filter and linear min filter
-// 	sampler_desc := &gfx.SamplerDesc{
-// 		mag_filter: gfx.Filter.nearest
-// 		min_filter: gfx.Filter.linear
-// 		wrap_u:     gfx.Wrap.clamp_to_edge
-// 		wrap_v:     gfx.Wrap.clamp_to_edge
-// 	}
-
-// 	// create a pipeline object with alpha blending for rendering the loaded image
-// 	mut pipeline_desc := gfx.PipelineDesc{}
-// 	unsafe { vmemset(&pipeline_desc, 0, int(sizeof(pipeline_desc))) }
-// 	pipeline_desc.colors[0] = gfx.ColorTargetState{
-// 		// write_mask: gfx.ColorMask.rgb
-// 		blend: gfx.BlendState{
-// 			enabled:        true
-// 			src_factor_rgb: gfx.BlendFactor.src_alpha
-// 			dst_factor_rgb: gfx.BlendFactor.one_minus_src_alpha
-// 		}
-// 	}
-
-// 	state.rendered_image.sampler = gfx.make_sampler(sampler_desc)
-// 	dump(state.rendered_image.sampler)
-// 	state.rendered_image.pipeline = sgl.make_pipeline(&pipeline_desc)
-
-// 	// state.image.pipeline = gfx.make_pipeline(&pipeline_desc)
-// }
 fn GfxImage.new() GfxImage {
 	sampler_desc := &gfx.SamplerDesc{
 		mag_filter: gfx.Filter.nearest
@@ -111,78 +84,43 @@ fn GfxImage.new() GfxImage {
 	}
 }
 
-fn (mut gfximage GfxImage) create(image imageio.Image) {
-	// image
-	gfximage.width = f32(image.width)
-	gfximage.height = f32(image.height)
-
-	mut tmp_imgdata := gfx.ImageData{}
-	tmp_imgdata.subimage[0][0] = gfx.Range{
-		ptr:  image.data.data
-		size: usize(image.width * image.height * 4)
+// Create a new image from an imageio.Image.
+// NOTE: this will create a dynamic image
+// this means the image data can be updated
+// but it will not be loaded on create()
+// use update() to load the image data
+fn (mut gfx_image GfxImage) create(image imageio.Image) {
+	if gfx_image.image.id != 0 { // SG_INVALID_ID
+		gfx.destroy_image(gfx_image.image)
+		gfx_image.image.id = 0
 	}
+
+	gfx_image.width = f32(image.width)
+	gfx_image.height = f32(image.height)
 
 	image_desc := gfx.ImageDesc{
 		width:        image.width
 		height:       image.height
 		pixel_format: gfx.PixelFormat.rgba8
-
-		// rgb8 deprecated
-		data: tmp_imgdata
+		usage:        gfx.Usage.dynamic
 	}
 
-	gfximage.image = gfx.make_image(&image_desc)
+	gfx_image.image = gfx.make_image(&image_desc)
 }
 
-fn (mut gfximage GfxImage) update(image imageio.Image) {
-	mut tmp_imgdata := gfx.ImageData{}
-	tmp_imgdata.subimage[0][0] = gfx.Range{
+fn (mut gfx_image GfxImage) update(image imageio.Image) {
+	gfx_image.width = f32(image.width)
+	gfx_image.height = f32(image.height)
+
+	mut image_data := gfx.ImageData{}
+	image_data.subimage[0][0] = gfx.Range{
 		ptr:  image.data.data
 		size: usize(image.width * image.height * 4)
 	}
 
-	gfx.update_image(gfximage.image, &tmp_imgdata)
+	gfx.update_image(gfx_image.image, &image_data)
 }
 
-// fn init_bg(mut state AppState) {
-// 	// texture and sampler for rendering checkboard background
-// 	mut pixels := [][]u32{len: 4, init: []u32{len: 4}}
-// 	for y := 0; y < 4; y++ {
-// 		for x := 0; x < 4; x++ {
-// 			if (x ^ y) & 1 == 1 {
-// 				pixels[y][x] = u32(0xFF666666)
-// 			} else {
-// 				pixels[y][x] = u32(0xFF333333)
-// 			}
-// 		}
-// 	}
-
-// 	mut tmp_imgdata := gfx.ImageData{}
-// 	tmp_imgdata.subimage[0][0] = gfx.Range{
-// 		ptr:  arrays.flatten[u32](pixels).data
-// 		size: usize(arrays.flatten[u32](pixels).len * sizeof(pixels[0][0]))
-// 	}
-
-// 	// rgb8 deprecated
-// 	mut image_desc := &gfx.ImageDesc{
-// 		width:        4
-// 		height:       4
-// 		label:        &u8(0)
-// 		pixel_format: gfx.PixelFormat.rgba8
-// 		data:         tmp_imgdata
-// 	}
-
-// 	mut smp_desc := &gfx.SamplerDesc{
-// 		min_filter: gfx.Filter.nearest
-// 		mag_filter: gfx.Filter.nearest
-// 		wrap_u:     gfx.Wrap.repeat
-// 		wrap_v:     gfx.Wrap.repeat
-// 	}
-
-// 	state.checkerboard.image = gfx.make_image(image_desc)
-
-// 	state.checkerboard.sampler = gfx.make_sampler(smp_desc)
-// }
 fn GfxTexture.new_checkerboard() GfxTexture {
 	// texture and sampler for rendering checkboard background
 	mut pixels := [][]u32{len: 4, init: []u32{len: 4}}
@@ -218,9 +156,6 @@ fn GfxTexture.new_checkerboard() GfxTexture {
 		wrap_v:     gfx.Wrap.repeat
 	}
 
-	// state.checkerboard.image = gfx.make_image(image_desc)
-
-	// state.checkerboard.sampler = gfx.make_sampler(smp_desc)
 	return GfxTexture{
 		image:   gfx.make_image(image_desc)
 		sampler: gfx.make_sampler(smp_desc)

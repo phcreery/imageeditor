@@ -2,7 +2,7 @@ module main
 
 import v.vmod
 
-pub fn print_console_header() {
+pub fn print_console_header(version string) {
 	mod := vmod.decode(@VMOD_FILE) or { panic('Error decoding v.mod') }
 	println("
  ███████████  █████ ██████████
@@ -14,6 +14,6 @@ pub fn print_console_header() {
  █████        █████ ██████████
 ░░░░░        ░░░░░ ░░░░░░░░░░ 
                               
-PEYTON'S IMAGE EDITOR v${mod.version}
+PEYTON'S IMAGE EDITOR v${version}
 ")
 }
