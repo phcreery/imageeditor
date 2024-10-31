@@ -78,6 +78,8 @@ fn draw_catalog_window(mut state AppState) {
 		return
 	}
 
+	mut changed := false
+
 	// initialize
 	cimgui.set_next_window_pos(state.windows.catalog.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
 	cimgui.set_next_window_size(state.windows.catalog.size, .im_gui_cond_once)
@@ -85,17 +87,26 @@ fn draw_catalog_window(mut state AppState) {
 	// begin
 	cimgui.begin('Catalog', &state.windows.catalog.is_open, .none_)
 	// content
-	// cimgui.text('Catalog')
-	// cimgui.begin_list_box('Catalog', cimgui.ImVec2{0, 200})
 	mut images := []string{}
 	for mut image in state.catalog.images {
 		images << image.path
 	}
-	// images << 'Another Image'
-	// images << 'Another Image2'
-	selected := 0
+	// selected_old := state.catalog_current_image_index
+	selected := state.catalog_current_image_index
 	label := 'Catalog'
-	cimgui.list_box_str_arr(&label, &selected, images, 5)
+	changed ||= cimgui.list_box_str_arr(&label, &selected, images, 5)
+	if changed {
+		println('changed ${selected}')
+		state.original_image = state.catalog.images[selected].image or {
+			panic('failed to load image')
+		}
+
+		// TODO: move this to a function
+		state.processed_image = state.original_image.clone() // this takes time
+		state.rendered_image.create(state.original_image)
+		state.rendered_image.update(state.original_image)
+		state.rendered_image.reset_params()
+	}
 	// end
 	cimgui.end()
 }

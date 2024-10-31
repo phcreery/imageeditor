@@ -7,7 +7,6 @@ import libs.sokolext as _
 import libs.sokolext.simgui
 import edit
 import imageio
-import time
 import v.vmod
 
 struct Color {
@@ -27,15 +26,30 @@ pub mut:
 pub struct AppState {
 	version string
 mut:
-	pass_action     gfx.PassAction
-	catalog         imageio.Catalog
-	original_image  imageio.Image
-	processed_image imageio.Image
-	rendered_image  GfxImage
-	checkerboard    GfxTexture
-	windows         UIWindows
-	pipeline        edit.Pipeline
-	fg              FrameGovernor
+	pass_action                 gfx.PassAction
+	catalog                     imageio.Catalog
+	catalog_current_image_index int
+	original_image              imageio.Image
+	processed_image             imageio.Image
+	rendered_image              GfxImage
+	checkerboard                GfxTexture
+	windows                     UIWindows
+	pipeline                    edit.Pipeline
+	fg                          FrameGovernor
+}
+
+fn (mut state AppState) set_catalog_current_image_index(index int) {
+	state.catalog_current_image_index = index
+}
+
+fn (mut state AppState) get_catalog_current_image_index() int {
+	if state.catalog_current_image_index < 0 {
+		state.catalog_current_image_index = 0
+	}
+	if state.catalog_current_image_index >= state.catalog.images.len {
+		state.catalog_current_image_index = state.catalog.images.len - 1
+	}
+	return state.catalog_current_image_index
 }
 
 fn init(mut state AppState) {
@@ -70,9 +84,6 @@ fn init(mut state AppState) {
 		// clear_value: gfx.Color{0.0, 0.5, 1.0, 0.5}
 	}
 
-	// init_image(mut state)
-	// init_bg(mut state)
-
 	state.rendered_image = GfxImage.new()
 	state.checkerboard = GfxTexture.new_checkerboard()
 
@@ -80,62 +91,21 @@ fn init(mut state AppState) {
 		target_fps: 30.0
 	}
 
+	state.catalog = imageio.Catalog.new()
+
 	// DEV
 	// image_path := 'Lenna.png'
 	// image_path := 'sample/LIT_9419.JPG_edit.bmp'
 	// mut image := load_image(image_path)
-
 	image_path := 'sample/DSC_6765.NEF'
 	// state.original_image = imageio.load_image_raw(image_path)
+	state.catalog.parallel_load_images_by_path([image_path])
+	// state.processed_image = state.original_image.clone()
+	// state.rendered_image.create(state.original_image)
+	// state.rendered_image.update(state.original_image)
+	// state.rendered_image.reset_params()
+	// END DEV
 
-	// CONCURRENT WITH SHARED MEMORY TEST
-	// shared loaded_image := imageio.Image{
-	// 	width:  0
-	// 	height: 0
-	// 	data:   []
-	// }
-	// dump(loaded_image.data.data)
-
-	// mut threads := []thread{}
-	// threads << spawn imageio.load_image_raw2(image_path, shared loaded_image)
-	// dump(threads)
-	// threads.wait()
-	// dump(threads)
-
-	// rlock loaded_image {
-	// 	state.original_image = loaded_image.clone()
-	// }
-	// END CONCURRENT WITH SHARED MEMORY TEST
-
-	// CONCURRENT WITH CHANNEL TEST
-	state.catalog = imageio.Catalog.new()
-	state.catalog.spawn_load_images_by_path([image_path])
-	dump(state.catalog.images.len)
-	// exit
-
-	for {
-		if state.catalog.images.len != 0 {
-			image := state.catalog.images[0]
-			state.original_image = image.image or { continue }
-			dump('loaded image: ${image.path}')
-			break
-		} else {
-			dump('no images')
-		}
-		time.sleep(time.second / 2)
-	}
-	// exit(1)
-
-	// END CONCURRENT WITH CHANNEL TEST
-
-	println('image loaded')
-	state.processed_image = state.original_image.clone()
-	println('image cloned')
-	state.rendered_image.create(state.original_image)
-	state.rendered_image.update(state.original_image)
-	println('image rendered')
-	state.rendered_image.reset_params()
-	println('image params reset')
 	state.pipeline = edit.init_pipeline()
 }
 

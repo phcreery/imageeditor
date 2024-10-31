@@ -10,12 +10,10 @@ enum LoadStatus {
 	failed
 }
 
-struct ManagedImage {
+pub struct ManagedImage {
 pub mut:
-	path  string
-	image ?Image
-
-	// on_load fn (self &ManagedImage) = unsafe { nil }
+	path   string
+	image  ?Image
 	status LoadStatus
 }
 
@@ -30,7 +28,7 @@ pub fn Catalog.new() Catalog {
 	}
 }
 
-pub fn (mut c Catalog) spawn_load_images_by_path(paths []string) {
+pub fn (mut catalog Catalog) parallel_load_images_by_path(paths []string) {
 	file_chan := chan string{cap: 1000}
 	managed_image_chan := chan ManagedImage{cap: 1000}
 
@@ -43,25 +41,25 @@ pub fn (mut c Catalog) spawn_load_images_by_path(paths []string) {
 	}()
 
 	// create workers to load images
-	spawn c.spawn_load_image_workers(managed_image_chan, file_chan)
+	spawn spawn_load_image_workers(managed_image_chan, file_chan)
 
 	// create worker to collect images
-	spawn fn [mut c, managed_image_chan] () {
+	spawn fn [mut catalog, managed_image_chan] () {
 		for {
 			managed_image := <-managed_image_chan or { break }
-			c.images << managed_image
+			catalog.images << managed_image
 		}
 	}()
 }
 
-pub fn (mut c Catalog) spawn_load_image_workers(managed_image_chan chan ManagedImage, filepath_chan chan string) {
+pub fn spawn_load_image_workers(managed_image_chan chan ManagedImage, filepath_chan chan string) {
 	mut wg := sync.new_waitgroup()
 	cpus := runtime.nr_cpus()
 	workers := math.max(cpus - 4, 1)
 	dump('loading images with ${workers} workers')
 	wg.add(workers)
 	for j := 0; j < workers; j++ {
-		spawn fn [filepath_chan, mut wg, mut c, managed_image_chan] () {
+		spawn fn [filepath_chan, mut wg, managed_image_chan] () {
 			for {
 				filepath := <-filepath_chan or { break }
 				dump('loading image: ${filepath}')

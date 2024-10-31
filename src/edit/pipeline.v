@@ -8,7 +8,7 @@ import benchmark
 pub struct Pipeline {
 pub mut:
 	backend processing.Backend
-	dirty   bool = false
+	dirty   bool
 	edits   []&Edit
 }
 
