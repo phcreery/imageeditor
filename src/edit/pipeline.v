@@ -5,23 +5,23 @@ import processing
 import imageio
 import benchmark
 
-pub struct Pipeline {
+pub struct PixelPipeline {
 pub mut:
 	backend processing.Backend
 	dirty   bool
 	edits   []&Edit
 }
 
-pub fn init_pipeline() Pipeline {
+pub fn init_pixelpipeline() PixelPipeline {
 	mut edits := []&Edit{}
 	edits << Invert.new()
-	return Pipeline{
+	return PixelPipeline{
 		backend: processing.Backend.new()
 		edits:   edits
 	}
 }
 
-pub fn (mut pipeline Pipeline) process(img imageio.Image, mut new_img imageio.Image) {
+pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imageio.Image) {
 	// make new_img a copy of img
 	new_img.data = img.data
 
@@ -29,30 +29,34 @@ pub fn (mut pipeline Pipeline) process(img imageio.Image, mut new_img imageio.Im
 
 	// don't process if no edits are enabled
 	mut any_enabled := false
-	for mut edit in pipeline.edits {
+	for mut edit in pixpipe.edits {
 		if edit.enabled {
 			any_enabled = true
 			break
 		}
 	}
 	if !any_enabled {
-		pipeline.dirty = false
+		pixpipe.dirty = false
 		return
 	}
 
-	pipeline.backend.load_image(img)
+	pixpipe.backend.load_image(img)
 	b.measure('load_image')
 
 	// process edits
-	for mut edit in pipeline.edits {
+	for mut edit in pixpipe.edits {
 		if edit.enabled {
-			edit.process(mut pipeline.backend)
+			edit.process(mut pixpipe.backend)
 			b.measure('process ${edit.name}')
 		}
 	}
 
-	pipeline.backend.read_image(mut new_img)
+	pixpipe.backend.read_image(mut new_img)
 	b.measure('read_image')
 
-	pipeline.dirty = false
+	pixpipe.dirty = false
+}
+
+pub fn (mut pixpipe PixelPipeline) shutdown() {
+	pixpipe.backend.shutdown()
 }

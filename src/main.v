@@ -34,7 +34,7 @@ mut:
 	rendered_image              GfxImage
 	checkerboard                GfxTexture
 	windows                     UIWindows
-	pipeline                    edit.Pipeline
+	pixpipe                     edit.PixelPipeline
 	fg                          FrameGovernor
 }
 
@@ -106,15 +106,15 @@ fn init(mut state AppState) {
 	// state.rendered_image.reset_params()
 	// END DEV
 
-	state.pipeline = edit.init_pipeline()
+	state.pixpipe = edit.init_pixelpipeline()
 }
 
 fn frame(mut state AppState) {
 	state.fg.begin_frame()
-	if state.pipeline.dirty {
+	if state.pixpipe.dirty {
 		// do processing
 		println('processing')
-		state.pipeline.process(state.original_image, mut state.processed_image)
+		state.pixpipe.process(state.original_image, mut state.processed_image)
 		state.rendered_image.update(state.processed_image)
 	}
 	desc := simgui.SimguiFrameDesc{
@@ -153,7 +153,7 @@ fn frame(mut state AppState) {
 }
 
 fn cleanup(mut state AppState) {
-	state.pipeline.backend.shutdown()
+	state.pixpipe.shutdown()
 	simgui.shutdown()
 	sgl.shutdown()
 	gfx.shutdown()

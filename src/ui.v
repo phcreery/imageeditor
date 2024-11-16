@@ -18,7 +18,7 @@ pub mut:
 	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 10}
 	size    cimgui.ImVec2 = cimgui.ImVec2{400, 350}
 
-	cimgui_version string = cimgui.get_version()
+	cimgui_version string = unsafe { cstring_to_vstring(char(cimgui.ig_get_version())) }
 	libraw_version string = libraw.libraw_version()
 }
 
@@ -48,29 +48,29 @@ fn draw_about_window(mut state AppState) {
 	}
 
 	// initialize
-	cimgui.set_next_window_pos(state.windows.about.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
-	cimgui.set_next_window_size(state.windows.about.size, .im_gui_cond_once)
+	cimgui.ig_set_next_window_pos(state.windows.about.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
+	cimgui.ig_set_next_window_size(state.windows.about.size, .im_gui_cond_once)
 
 	// begin
-	cimgui.begin('About', &state.windows.about.is_open, .none_)
+	cimgui.ig_begin('About'.str, &state.windows.about.is_open, .im_gui_window_flags_none)
 	// content
-	cimgui.text("PIE: Peyton's Image Editor v${state.version}")
-	cimgui.text('v hash: ${@VHASH}')
-	cimgui.text('build date: ${@BUILD_DATE} ${@BUILD_TIME}')
-	cimgui.text('cimgui version: ${state.windows.about.cimgui_version}')
-	cimgui.text('LibRaw version: ${state.windows.about.libraw_version}')
-	cimgui.text('Backend: ${state.pipeline.backend.name} (${state.pipeline.backend.version})')
+	cimgui.ig_text("PIE: Peyton's Image Editor v${state.version}".str)
+	cimgui.ig_text('v hash: ${@VHASH}'.str)
+	cimgui.ig_text('build date: ${@BUILD_DATE} ${@BUILD_TIME}'.str)
+	cimgui.ig_text('cimgui version: ${state.windows.about.cimgui_version}'.str)
+	cimgui.ig_text('LibRaw version: ${state.windows.about.libraw_version}'.str)
+	cimgui.ig_text('Backend: ${state.pixpipe.backend.name} (${state.pixpipe.backend.version})'.str)
 
-	cimgui.text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})')
-	cimgui.plot_lines_float_ptr('FPS', state.fg.fps_history.data, 100, 0, '', 0, 120,
-		cimgui.ImVec2{0, 80}, sizeof(f32))
+	cimgui.ig_text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})'.str)
+	cimgui.ig_plot_lines_float_ptr('FPS'.str, state.fg.fps_history.data, 100, 0, c'',
+		0, 120, cimgui.ImVec2{0, 80}, sizeof(f32))
 
-	cimgui.text('Duty cycle: ${state.fg.duty_cycle}')
-	cimgui.plot_lines_float_ptr('Duty cycle', state.fg.duty_history.data, 100, 0, '',
-		0, 1, cimgui.ImVec2{0, 80}, sizeof(f32))
+	cimgui.ig_text('Duty cycle: ${state.fg.duty_cycle}'.str)
+	cimgui.ig_plot_lines_float_ptr('Duty cycle'.str, state.fg.duty_history.data, 100,
+		0, c'', 0, 1, cimgui.ImVec2{0, 80}, sizeof(f32))
 
 	// end
-	cimgui.end()
+	cimgui.ig_end()
 }
 
 fn draw_catalog_window(mut state AppState) {
@@ -81,11 +81,11 @@ fn draw_catalog_window(mut state AppState) {
 	mut changed := false
 
 	// initialize
-	cimgui.set_next_window_pos(state.windows.catalog.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
-	cimgui.set_next_window_size(state.windows.catalog.size, .im_gui_cond_once)
+	cimgui.ig_set_next_window_pos(state.windows.catalog.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
+	cimgui.ig_set_next_window_size(state.windows.catalog.size, .im_gui_cond_once)
 
 	// begin
-	cimgui.begin('Catalog', &state.windows.catalog.is_open, .none_)
+	cimgui.ig_begin(c'Catalog', &state.windows.catalog.is_open, .im_gui_window_flags_none)
 	// content
 	mut images := []string{}
 	for mut image in state.catalog.images {
@@ -93,8 +93,16 @@ fn draw_catalog_window(mut state AppState) {
 	}
 	// selected_old := state.catalog_current_image_index
 	selected := state.catalog_current_image_index
-	label := 'Catalog'
-	changed ||= cimgui.list_box_str_arr(&label, &selected, images, 5)
+	mut items_ptrs := []&u8{len: images.len, init: 0}
+	for i, item in images {
+		items_ptrs[i] = item.str
+	}
+	if images.len == 0 {
+		items_ptrs = []&u8{len: 1, init: 0}
+	}
+
+	changed ||= cimgui.ig_list_box_str_arr('Catalog'.str, &selected, &items_ptrs[0], images.len,
+		5)
 	if changed {
 		println('changed ${selected}')
 		state.original_image = state.catalog.images[selected].image or {
@@ -108,25 +116,25 @@ fn draw_catalog_window(mut state AppState) {
 		state.rendered_image.reset_params()
 	}
 	// end
-	cimgui.end()
+	cimgui.ig_end()
 }
 
 fn draw_edit_window(mut state AppState) {
 	mut changed := false
-	cimgui.set_next_window_pos(state.windows.basic.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
-	cimgui.set_next_window_size(state.windows.basic.size, .im_gui_cond_once)
-	cimgui.begin('Basic Edits', &state.windows.basic.is_open, .none_)
+	cimgui.ig_set_next_window_pos(state.windows.basic.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
+	cimgui.ig_set_next_window_size(state.windows.basic.size, .im_gui_cond_once)
+	cimgui.ig_begin('Basic Edits'.str, &state.windows.basic.is_open, .im_gui_window_flags_none)
 	// cimgui.color_edit3('Background', &state.pass_action.colors[0].clear_value.r, 0)
-	// changed ||= cimgui.checkbox('Invert', &state.pipeline.invert.enabled)
+	// changed ||= cimgui.checkbox('Invert', &state.pixpipe.invert.enabled)
 	// dump(changed)
-	// changed ||= cimgui.checkbox('Grayscale', &state.pipeline.grayscale)
+	// changed ||= cimgui.checkbox('Grayscale', &state.pixpipe.grayscale)
 
-	for mut edit in state.pipeline.edits {
+	for mut edit in state.pixpipe.edits {
 		changed ||= edit.draw()
 	}
 
-	state.pipeline.dirty ||= changed
-	cimgui.end()
+	state.pixpipe.dirty ||= changed
+	cimgui.ig_end()
 }
 
 fn draw_windows(mut state AppState) {

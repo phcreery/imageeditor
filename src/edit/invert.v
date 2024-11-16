@@ -20,6 +20,6 @@ pub fn (invert Invert) process(mut backend processing.Backend) {
 }
 
 pub fn (mut invert Invert) draw() bool {
-	changed := cimgui.checkbox('Invert', &invert.enabled)
+	changed := cimgui.ig_checkbox('Invert'.str, &invert.enabled)
 	return changed
 }
