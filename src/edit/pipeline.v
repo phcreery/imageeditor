@@ -7,7 +7,7 @@ import benchmark
 
 pub struct PixelPipeline {
 pub mut:
-	backend processing.Backend
+	backend processing.Backend = processing.Backend.new()
 	dirty   bool
 	edits   []&Edit
 }
@@ -16,8 +16,7 @@ pub fn init_pixelpipeline() PixelPipeline {
 	mut edits := []&Edit{}
 	edits << Invert.new()
 	return PixelPipeline{
-		backend: processing.Backend.new()
-		edits:   edits
+		edits: edits
 	}
 }
 
@@ -51,13 +50,7 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 		}
 	}
 
-	dump(new_img.width)
-	dump(new_img.height)
-	dump(new_img.nr_channels)
 	pixpipe.backend.read_image(mut new_img)
-	dump(new_img.width)
-	dump(new_img.height)
-	dump(new_img.nr_channels)
 	b.measure('read_image')
 
 	pixpipe.dirty = false

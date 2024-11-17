@@ -87,21 +87,21 @@ fn draw_catalog_window(mut state AppState) {
 	// begin
 	cimgui.ig_begin(c'Catalog', &state.windows.catalog.is_open, .im_gui_window_flags_none)
 	// content
-	mut images := []string{}
+	mut image_names := []string{}
 	for mut image in state.catalog.images {
-		images << image.path
+		image_names << '${image.path} (${image.status})'
 	}
 	selected := state.catalog_current_image_index
-	mut items_ptrs := []&u8{len: images.len, init: 0}
-	for i, item in images {
-		items_ptrs[i] = item.str
+	mut image_names_ptrs := []&u8{len: image_names.len, init: 0}
+	for i, item in image_names {
+		image_names_ptrs[i] = item.str
 	}
-	if images.len == 0 {
-		items_ptrs = []&u8{len: 1, init: 0}
+	if image_names.len == 0 {
+		image_names_ptrs = []&u8{len: 1, init: 0}
 	}
 
-	changed ||= cimgui.ig_list_box_str_arr('Catalog'.str, &selected, &items_ptrs[0], images.len,
-		5)
+	changed ||= cimgui.ig_list_box_str_arr('Catalog'.str, &selected, &image_names_ptrs[0],
+		image_names.len, 5)
 	if changed {
 		state.set_catalog_current_image_index(selected)
 	}

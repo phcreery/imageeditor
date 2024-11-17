@@ -39,6 +39,9 @@ mut:
 }
 
 fn (mut state AppState) set_catalog_current_image_index(index int) {
+	if state.catalog.images[index].status != imageio.LoadStatus.loaded {
+		return
+	}
 	state.original_image = state.catalog.images[index].image or { panic('failed to load image') }
 
 	state.processed_image = &imageio.Image{

@@ -4,7 +4,7 @@ import sync
 import runtime
 import math
 
-enum LoadStatus {
+pub enum LoadStatus {
 	loading
 	loaded
 	failed
@@ -12,6 +12,7 @@ enum LoadStatus {
 
 pub struct ManagedImage {
 pub mut:
+	// unique identifier
 	path   string
 	image  ?Image
 	status LoadStatus
@@ -47,7 +48,22 @@ pub fn (mut catalog Catalog) parallel_load_images_by_path(paths []string) {
 	spawn fn [mut catalog, managed_image_chan] () {
 		for {
 			managed_image := <-managed_image_chan or { break }
-			catalog.images << managed_image
+
+			// find the image in the catalog
+			mut found := false
+			for mut img in catalog.images {
+				if img.path == managed_image.path {
+					img.image = managed_image.image
+					img.status = managed_image.status
+					found = true
+					break
+				}
+			}
+
+			// if the image was not found, add it to the catalog
+			if !found {
+				catalog.images << managed_image
+			}
 		}
 	}()
 }
@@ -56,28 +72,27 @@ pub fn spawn_load_image_workers(managed_image_chan chan ManagedImage, filepath_c
 	mut wg := sync.new_waitgroup()
 	cpus := runtime.nr_cpus()
 	workers := math.max(cpus - 4, 1)
-	dump('loading images with ${workers} workers')
 	wg.add(workers)
 	for j := 0; j < workers; j++ {
 		spawn fn [filepath_chan, mut wg, managed_image_chan] () {
 			for {
 				filepath := <-filepath_chan or { break }
 				dump('loading image: ${filepath}')
+				managed_image_chan <- ManagedImage{
+					path:   filepath
+					status: LoadStatus.loading
+				}
 				image := load_image_raw(filepath)
 				managed_image_chan <- ManagedImage{
 					path:   filepath
 					image:  image
 					status: LoadStatus.loaded
 				}
-				dump('loaded image: ${filepath}')
 			}
-			dump('worker done')
-
 			wg.done()
 		}()
 	}
 
-	dump('wg done')
 	wg.wait()
 	managed_image_chan.close()
 }
