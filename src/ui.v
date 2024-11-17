@@ -18,7 +18,7 @@ pub mut:
 	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 10}
 	size    cimgui.ImVec2 = cimgui.ImVec2{400, 350}
 
-	cimgui_version string = unsafe { cstring_to_vstring(char(cimgui.ig_get_version())) }
+	cimgui_version string = unsafe { cstring_to_vstring(&char(cimgui.ig_get_version())) }
 	libraw_version string = libraw.libraw_version()
 }
 
@@ -91,7 +91,6 @@ fn draw_catalog_window(mut state AppState) {
 	for mut image in state.catalog.images {
 		images << image.path
 	}
-	// selected_old := state.catalog_current_image_index
 	selected := state.catalog_current_image_index
 	mut items_ptrs := []&u8{len: images.len, init: 0}
 	for i, item in images {
@@ -104,16 +103,7 @@ fn draw_catalog_window(mut state AppState) {
 	changed ||= cimgui.ig_list_box_str_arr('Catalog'.str, &selected, &items_ptrs[0], images.len,
 		5)
 	if changed {
-		println('changed ${selected}')
-		state.original_image = state.catalog.images[selected].image or {
-			panic('failed to load image')
-		}
-
-		// TODO: move this to a function
-		state.processed_image = state.original_image.clone() // this takes time
-		state.rendered_image.create(state.original_image)
-		state.rendered_image.update(state.original_image)
-		state.rendered_image.reset_params()
+		state.set_catalog_current_image_index(selected)
 	}
 	// end
 	cimgui.ig_end()

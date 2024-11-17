@@ -25,8 +25,6 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 	// make new_img a copy of img
 	new_img.data = img.data
 
-	mut b := benchmark.start()
-
 	// don't process if no edits are enabled
 	mut any_enabled := false
 	for mut edit in pixpipe.edits {
@@ -40,6 +38,8 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 		return
 	}
 
+	mut b := benchmark.start()
+
 	pixpipe.backend.load_image(img)
 	b.measure('load_image')
 
@@ -51,7 +51,13 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 		}
 	}
 
+	dump(new_img.width)
+	dump(new_img.height)
+	dump(new_img.nr_channels)
 	pixpipe.backend.read_image(mut new_img)
+	dump(new_img.width)
+	dump(new_img.height)
+	dump(new_img.nr_channels)
 	b.measure('read_image')
 
 	pixpipe.dirty = false

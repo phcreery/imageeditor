@@ -64,8 +64,6 @@ pub fn (mut backend BackendCL) read_image(mut image imageio.Image) {
 	mut data := unsafe { arrays.carray_to_varray[u8](processed_image.data, processed_image.width * processed_image.height * 4) }
 
 	// b.measure('convert data')
-
-	// println('first 4 pixels of inverted image: ${data[0..16]}')
 	image.data = data
 }
 

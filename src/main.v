@@ -30,7 +30,7 @@ mut:
 	catalog                     imageio.Catalog
 	catalog_current_image_index int
 	original_image              imageio.Image
-	processed_image             imageio.Image
+	processed_image             &imageio.Image = &imageio.Image{}
 	rendered_image              GfxImage
 	checkerboard                GfxTexture
 	windows                     UIWindows
@@ -39,6 +39,16 @@ mut:
 }
 
 fn (mut state AppState) set_catalog_current_image_index(index int) {
+	state.original_image = state.catalog.images[index].image or { panic('failed to load image') }
+
+	state.processed_image = &imageio.Image{
+		width:  state.original_image.width
+		height: state.original_image.height
+	}
+	state.pixpipe.dirty = true
+	state.rendered_image.create(state.original_image)
+	state.rendered_image.update(state.original_image)
+	state.rendered_image.reset_params()
 	state.catalog_current_image_index = index
 }
 
@@ -100,11 +110,6 @@ fn init(mut state AppState) {
 	image_path := 'sample/DSC_6765.NEF'
 	// state.original_image = imageio.load_image_raw(image_path)
 	state.catalog.parallel_load_images_by_path([image_path])
-	// state.processed_image = state.original_image.clone()
-	// state.rendered_image.create(state.original_image)
-	// state.rendered_image.update(state.original_image)
-	// state.rendered_image.reset_params()
-	// END DEV
 
 	state.pixpipe = edit.init_pixelpipeline()
 }
@@ -133,8 +138,8 @@ fn frame(mut state AppState) {
 	sgl.matrix_mode_projection()
 	sgl.ortho(-disp_w * 0.5, disp_w * 0.5, disp_h * 0.5, -disp_h * 0.5, -1.0, 1.0)
 
-	canvas_draw_checkerboard(state, disp_w, disp_h)
-	canvas_draw_image(state)
+	state.checkerboard.draw_checkerboard(disp_w, disp_h)
+	state.rendered_image.draw()
 	// SGL END
 
 	// UI START
