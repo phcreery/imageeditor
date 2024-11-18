@@ -77,7 +77,7 @@ pub fn spawn_load_image_workers(managed_image_chan chan ManagedImage, filepath_c
 		spawn fn [filepath_chan, mut wg, managed_image_chan] () {
 			for {
 				filepath := <-filepath_chan or { break }
-				dump('loading image: ${filepath}')
+				println('loading image: ${filepath}')
 				managed_image_chan <- ManagedImage{
 					path:   filepath
 					status: LoadStatus.loading

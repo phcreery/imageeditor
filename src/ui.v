@@ -87,6 +87,12 @@ fn draw_catalog_window(mut state AppState) {
 	// begin
 	cimgui.ig_begin(c'Catalog', &state.windows.catalog.is_open, .im_gui_window_flags_none)
 	// content
+
+	load_pressed := cimgui.ig_button('Open'.str, cimgui.ImVec2{40, 20})
+	if load_pressed {
+		state.open_image_dev()
+	}
+
 	mut image_names := []string{}
 	for mut image in state.catalog.images {
 		image_names << '${image.path} (${image.status})'
@@ -128,8 +134,8 @@ fn draw_edit_window(mut state AppState) {
 }
 
 fn draw_windows(mut state AppState) {
-	// show_demo_window := true
-	// cimgui.show_metrics_window(&show_demo_window)
+	show_demo_window := true
+	cimgui.ig_show_metrics_window(&show_demo_window)
 
 	draw_about_window(mut state)
 	draw_edit_window(mut state)

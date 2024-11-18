@@ -15,6 +15,7 @@ pub mut:
 pub fn init_pixelpipeline() PixelPipeline {
 	mut edits := []&Edit{}
 	edits << Invert.new()
+	edits << Temperature.new()
 	return PixelPipeline{
 		edits: edits
 	}

@@ -106,6 +106,10 @@ fn init(mut state AppState) {
 
 	state.catalog = imageio.Catalog.new()
 
+	state.pixpipe = edit.init_pixelpipeline()
+}
+
+fn (mut state AppState) open_image_dev() {
 	// DEV
 	// image_path := 'Lenna.png'
 	// image_path := 'sample/LIT_9419.JPG_edit.bmp'
@@ -113,11 +117,12 @@ fn init(mut state AppState) {
 	image_path := 'sample/DSC_6765.NEF'
 	// state.original_image = imageio.load_image_raw(image_path)
 	state.catalog.parallel_load_images_by_path([image_path])
-
-	state.pixpipe = edit.init_pixelpipeline()
 }
 
 fn frame(mut state AppState) {
+	// Unhandled Exception 0x406D1388
+	// happening on second frame on draw pass
+
 	state.fg.begin_frame()
 	if state.pixpipe.dirty {
 		// do processing
@@ -125,6 +130,7 @@ fn frame(mut state AppState) {
 		state.pixpipe.process(state.original_image, mut state.processed_image)
 		state.rendered_image.update(state.processed_image)
 	}
+
 	desc := simgui.SimguiFrameDesc{
 		width:      sapp.width()
 		height:     sapp.height()
