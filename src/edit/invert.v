@@ -2,9 +2,12 @@ module edit
 
 import processing
 import libs.cimgui
+import common
 
 pub struct Invert implements Edit {
-	name string = 'Invert'
+	name    string                = 'Invert'
+	cs_from common.ColorspaceType = .none
+	cs_to   common.ColorspaceType = .none
 pub mut:
 	enabled bool
 }

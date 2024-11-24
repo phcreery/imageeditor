@@ -9,48 +9,39 @@ import edit
 import imageio
 import v.vmod
 
-struct Color {
-mut:
-	r f32
-	g f32
-	b f32
-}
-
-struct Offset {
-pub mut:
-	x f32
-	y f32
-}
-
 @[heap]
 pub struct AppState {
 	version string
 mut:
-	pass_action                 gfx.PassAction
 	catalog                     imageio.Catalog
 	catalog_current_image_index int
-	original_image              imageio.Image
-	processed_image             &imageio.Image = &imageio.Image{}
-	rendered_image              GfxImage
-	checkerboard                GfxTexture
-	windows                     UIWindows
-	pixpipe                     edit.PixelPipeline
-	fg                          FrameGovernor
+	center_image_original       imageio.Image
+	center_image_processed      &imageio.Image = &imageio.Image{}
+	center_image_pixpipe        edit.PixelPipeline
+
+	// ui
+	pass_action    gfx.PassAction
+	rendered_image GfxImage
+	checkerboard   GfxTexture
+	windows        UIWindows
+	fg             FrameGovernor
 }
 
 fn (mut state AppState) set_catalog_current_image_index(index int) {
 	if state.catalog.images[index].status != imageio.LoadStatus.loaded {
 		return
 	}
-	state.original_image = state.catalog.images[index].image or { panic('failed to load image') }
-
-	state.processed_image = &imageio.Image{
-		width:  state.original_image.width
-		height: state.original_image.height
+	state.center_image_original = state.catalog.images[index].image or {
+		panic('failed to load image')
 	}
-	state.pixpipe.dirty = true
-	state.rendered_image.create(state.original_image)
-	state.rendered_image.update(state.original_image)
+
+	state.center_image_processed = &imageio.Image{
+		width:  state.center_image_original.width
+		height: state.center_image_original.height
+	}
+	state.center_image_pixpipe.dirty = true
+	state.rendered_image.create(state.center_image_original)
+	state.rendered_image.update(state.center_image_original)
 	state.rendered_image.reset_params()
 	state.catalog_current_image_index = index
 }
@@ -106,7 +97,9 @@ fn init(mut state AppState) {
 
 	state.catalog = imageio.Catalog.new()
 
-	state.pixpipe = edit.init_pixelpipeline()
+	state.center_image_pixpipe = edit.init_pixelpipeline()
+
+	state.windows = UIWindows.new()
 }
 
 fn (mut state AppState) open_image_dev() {
@@ -115,7 +108,7 @@ fn (mut state AppState) open_image_dev() {
 	// image_path := 'sample/LIT_9419.JPG_edit.bmp'
 	// mut image := load_image(image_path)
 	image_path := 'sample/DSC_6765.NEF'
-	// state.original_image = imageio.load_image_raw(image_path)
+	// state.center_image_original = imageio.load_image_raw(image_path)
 	state.catalog.parallel_load_images_by_path([image_path])
 }
 
@@ -124,11 +117,11 @@ fn frame(mut state AppState) {
 	// happening on second frame on draw pass
 
 	state.fg.begin_frame()
-	if state.pixpipe.dirty {
+	if state.center_image_pixpipe.dirty {
 		// do processing
 		println('processing')
-		state.pixpipe.process(state.original_image, mut state.processed_image)
-		state.rendered_image.update(state.processed_image)
+		state.center_image_pixpipe.process(state.center_image_original, mut state.center_image_processed)
+		state.rendered_image.update(state.center_image_processed)
 	}
 
 	desc := simgui.SimguiFrameDesc{
@@ -167,7 +160,7 @@ fn frame(mut state AppState) {
 }
 
 fn cleanup(mut state AppState) {
-	state.pixpipe.shutdown()
+	state.center_image_pixpipe.shutdown()
 	simgui.shutdown()
 	sgl.shutdown()
 	gfx.shutdown()

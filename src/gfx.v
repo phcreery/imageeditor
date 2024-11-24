@@ -9,6 +9,12 @@ import imageio
 const max_scale = 8.0
 const min_scale = 0.05
 
+struct Offset {
+pub mut:
+	x f32
+	y f32
+}
+
 @[heap]
 struct GfxTexture {
 pub mut:

@@ -6,8 +6,11 @@ This will try to download and setup cimgui, sokol, and LibRaw
 
 ```
 make app
+v -cc gcc -d vsl_vcl_dlopencl watch run .
 v -cc gcc -showcc -d vsl_vcl_dlopencl watch run .
 ```
+
+vsl_vcl_dlopencl tells vsl to use dynamically linked opencl
 
 ## Misc
 
@@ -27,6 +30,8 @@ v -cc gcc -showcc -d vsl_vcl_dlopencl watch run .
 - Run c2v to wrap libraw header
   - `./c2v.exe wrapper '.\thirdparty\LibRaw\libraw\libraw.h'`
 
-### Sources
+### References
 
 - raw files: https://www.imatest.com/docs/raw/
+- https://github.com/ProjectPhysX/OpenCL-Wrapper
+- https://github.com/morousg/simple-opencl

@@ -32,14 +32,18 @@ pub mut:
 struct UIWindowBasicEdits implements CimguiState {
 pub mut:
 	is_open bool          = true
-	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 580}
+	pos     cimgui.ImVec2 = cimgui.ImVec2{sapp.width() - 400 - 10, 10}
 	size    cimgui.ImVec2 = cimgui.ImVec2{400, 100}
 }
 
 struct UIWindows {
-	about   UIWindowAbout
-	basic   UIWindowBasicEdits
-	catalog UIWindowCatalog
+	about   UIWindowAbout      = UIWindowAbout{}
+	basic   UIWindowBasicEdits = UIWindowBasicEdits{}
+	catalog UIWindowCatalog    = UIWindowCatalog{}
+}
+
+fn UIWindows.new() UIWindows {
+	return UIWindows{}
 }
 
 fn draw_about_window(mut state AppState) {
@@ -59,7 +63,7 @@ fn draw_about_window(mut state AppState) {
 	cimgui.ig_text('build date: ${@BUILD_DATE} ${@BUILD_TIME}'.str)
 	cimgui.ig_text('cimgui version: ${state.windows.about.cimgui_version}'.str)
 	cimgui.ig_text('LibRaw version: ${state.windows.about.libraw_version}'.str)
-	cimgui.ig_text('Backend: ${state.pixpipe.backend.name} (${state.pixpipe.backend.version})'.str)
+	cimgui.ig_text('Backend: ${state.center_image_pixpipe.backend.name} (${state.center_image_pixpipe.backend.version})'.str)
 
 	cimgui.ig_text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})'.str)
 	cimgui.ig_plot_lines_float_ptr('FPS'.str, state.fg.fps_history.data, 100, 0, c'',
@@ -121,21 +125,24 @@ fn draw_edit_window(mut state AppState) {
 	cimgui.ig_set_next_window_size(state.windows.basic.size, .im_gui_cond_once)
 	cimgui.ig_begin('Basic Edits'.str, &state.windows.basic.is_open, .im_gui_window_flags_none)
 	// cimgui.color_edit3('Background', &state.pass_action.colors[0].clear_value.r, 0)
-	// changed ||= cimgui.checkbox('Invert', &state.pixpipe.invert.enabled)
+	// changed ||= cimgui.checkbox('Invert', &state.center_image_pixpipe.invert.enabled)
 	// dump(changed)
-	// changed ||= cimgui.checkbox('Grayscale', &state.pixpipe.grayscale)
+	// changed ||= cimgui.checkbox('Grayscale', &state.center_image_pixpipe.grayscale)
 
-	for mut edit in state.pixpipe.edits {
+	for mut edit in state.center_image_pixpipe.edits {
 		changed ||= edit.draw()
 	}
 
-	state.pixpipe.dirty ||= changed
+	state.center_image_pixpipe.dirty ||= changed
 	cimgui.ig_end()
 }
 
 fn draw_windows(mut state AppState) {
-	show_demo_window := true
-	cimgui.ig_show_metrics_window(&show_demo_window)
+	// v -cg ...
+	$if debug {
+		show_demo_window := true
+		cimgui.ig_show_metrics_window(&show_demo_window)
+	}
 
 	draw_about_window(mut state)
 	draw_edit_window(mut state)
@@ -154,7 +161,7 @@ fn event(ev &sapp.Event, mut state AppState) {
 		.key_down {
 			match ev.key_code {
 				.backslash {
-					state.rendered_image.update(state.original_image)
+					state.rendered_image.update(state.center_image_original)
 				}
 				else {
 					// println('idk')
@@ -164,7 +171,7 @@ fn event(ev &sapp.Event, mut state AppState) {
 		.key_up {
 			match ev.key_code {
 				.backslash {
-					state.rendered_image.update(state.processed_image)
+					state.rendered_image.update(state.center_image_processed)
 				}
 				.space {
 					state.rendered_image.reset_params()
