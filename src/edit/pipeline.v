@@ -4,6 +4,7 @@ module edit
 import processing
 import imageio
 import benchmark
+import processing.cl
 
 // insp from darktable/src/develop/pixelpipe.h
 enum PixelPipeType {
@@ -16,16 +17,26 @@ enum PixelPipeType {
 
 pub struct PixelPipeline {
 pub mut:
-	backend processing.Backend = processing.Backend.new()
-	type    PixelPipeType
-	dirty   bool
-	edits   []&Edit
+	// backend processing.Backend = processing.Backend.new()
+	// backend cl.BackendCL = cl.create_backend_cl()
+	// backend cl.BackendCL = cl.BackendCL.new()
+	backend processing.Backend = processing.Backend(cl.BackendCL.new())
+
+	// cl.BackendCL.new()
+	// backend_cpu &processing.Backend
+	type  PixelPipeType
+	dirty bool
+	edits []&Edit
 }
 
 pub fn init_pixelpipeline() PixelPipeline {
+	// mut backends := []&processing.Backend{}
+	// backends << processing.Backend.new()
+
+	// see darktable/src/common/iop_order.c
 	mut edits := []&Edit{}
-	edits << Invert.new()
-	edits << Temperature.new()
+	edits << Invert{}
+	edits << Temperature{}
 	return PixelPipeline{
 		edits: edits
 	}
@@ -51,11 +62,11 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 
 	mut b := benchmark.start()
 
-	// TODO: memory manage per edit
-	pixpipe.backend.load_image(img)
-	b.measure('load_image')
-
 	// TODO: colorspace handling
+
+	// TODO: memory manage per edit
+	pixpipe.backend.copy_host_to_device(img)
+	b.measure('pixelpipeline process copy_host_to_device')
 
 	// process edits
 	for mut edit in pixpipe.edits {
@@ -66,11 +77,12 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 	}
 
 	// TODO: memory manage per edit
-	pixpipe.backend.read_image(mut new_img)
-	b.measure('read_image')
+	pixpipe.backend.copy_device_to_host(mut new_img)
+	b.measure('pixelpipeline process copy_device_to_host')
 
-	// TODO: colorspace handling
 	pixpipe.dirty = false
+
+	println(b.total_message('pixelpipeline process'))
 }
 
 pub fn (mut pixpipe PixelPipeline) shutdown() {

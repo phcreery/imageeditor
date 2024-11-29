@@ -2,6 +2,7 @@ module edit
 
 import processing
 import common
+import processing.cl
 
 interface Edit {
 	name    string
@@ -9,6 +10,9 @@ interface Edit {
 	cs_to   common.ColorspaceType
 mut:
 	enabled bool
+
 	process(mut backend processing.Backend)
+
+	// process(mut backend cl.BackendCL)
 	draw() bool
 }

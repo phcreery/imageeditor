@@ -1,28 +1,25 @@
-module cl
+module cpu
 
-import vsl.vcl
 import os
 import stbi
 import imageio
 import arrays
 import common
 
-pub const root = os.dir(@FILE)
-
-pub struct BackendCL {
+pub struct BackendCPU {
 mut:
-	device               &vcl.Device = unsafe { nil }
+	// device               &vcl.Device
+	mem_ctx              common.DeviceMemoryContext = .cpu
 	image                imageio.Image
-	image_device_current &vcl.Image = unsafe { nil }
-	image_device_next    &vcl.Image = unsafe { nil }
+	image_device_current &vcl.Image
+	image_device_next    &vcl.Image
 pub:
-	name    string                     = 'OpenCL'
-	mem_ctx common.DeviceMemoryContext = .cl
-	status  string
+	name    string = 'CPU'
 	version string
+	status  string
 }
 
-pub fn BackendCL.new() BackendCL {
+pub fn create_backend_cl() BackendCL {
 	mut device := vcl.get_default_device() or { panic(err) }
 	return BackendCL{
 		status:               'ok'
@@ -33,17 +30,6 @@ pub fn BackendCL.new() BackendCL {
 	}
 }
 
-// @[deprecated: 'use BackendCL.new()']
-// pub fn create_backend_cl() BackendCL {
-// 	mut device := vcl.get_default_device() or { panic(err) }
-// 	return BackendCL{
-// 		status:               'ok'
-// 		device:               device
-// 		version:              device.open_clc_version() or { panic(err) }
-// 		image_device_current: unsafe { nil }
-// 		image_device_next:    unsafe { nil }
-// 	}
-// }
 pub fn (mut backend BackendCL) init() {
 	return
 }
@@ -63,6 +49,12 @@ pub fn (mut backend BackendCL) copy_host_to_device(image imageio.Image) {
 	}
 }
 
+fn (mut backend BackendCL) swap_images() {
+	tmp := backend.image_device_current
+	backend.image_device_current = backend.image_device_next
+	backend.image_device_next = tmp
+}
+
 pub fn (mut backend BackendCL) copy_device_to_host(mut image imageio.Image) {
 	// read image back from device to host
 	processed_image := backend.image_device_current.data() or { panic(err) }
@@ -72,12 +64,6 @@ pub fn (mut backend BackendCL) copy_device_to_host(mut image imageio.Image) {
 
 	// b.measure('convert data')
 	image.data = data
-}
-
-pub fn (mut backend BackendCL) swap_images() {
-	tmp := backend.image_device_current
-	backend.image_device_current = backend.image_device_next
-	backend.image_device_next = tmp
 }
 
 pub fn (mut backend BackendCL) shutdown() {

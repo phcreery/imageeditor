@@ -3,6 +3,7 @@ module edit
 import processing
 import libs.cimgui
 import common
+import processing.cl
 
 pub struct Temperature implements Edit {
 	name    string                = 'Temperature'
@@ -11,23 +12,39 @@ pub struct Temperature implements Edit {
 pub mut:
 	enabled bool
 
-	value f32 = 0.5
-	dc    DebouncedChange
+	value f32             = 0.5
+	dc    DebouncedChange = DebouncedChange{}
 }
 
-fn Temperature.new() Temperature {
-	return Temperature{
-		enabled: false
-		dc:      DebouncedChange{
-			should_toggle: false
-		}
-	}
-}
+// fn Temperature.new() Temperature {
+// 	return Temperature{
+// 		enabled: false
+// 		dc:      DebouncedChange{
+// 			should_toggle: false
+// 		}
+// 	}
+// }
 
+// pub fn (temp Temperature) process_cpu(mut backend processing.Backend) {
+// 	for yy in 0 .. backend..image.height {
+// 		for xx in 0 .. backend.image.width {
+// 			pixel := img.get_pixel(xx, yy)
+// 			pixel_rgbf64 := rgbu8_to_rgbf64(pixel)
+// 			new_pixel_rgbf64 := modifier(pixel_rgbf64)
+// 			clamped_rgb := clamp_rgbf64_to_rgbu8(new_pixel_rgbf64)
+// 			newimg.set_pixel(xx, yy, clamped_rgb)
+// 		}
+// 	}
+// 	return newimg
+// }
 pub fn (temp Temperature) process(mut backend processing.Backend) {
 	// backend.invert()
 }
 
+// process_cl()
+// pub fn (invert Temperature) process(mut backend cl.BackendCL) {
+// 	backend.invert()
+// }
 pub fn (mut temp Temperature) draw() bool {
 	mut changed := false
 
