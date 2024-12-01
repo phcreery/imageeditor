@@ -3,8 +3,8 @@ module edit
 import processing
 import libs.cimgui
 import common
-import processing.cl
 
+// import processing.cl
 pub struct Temperature implements Edit {
 	name    string                = 'Temperature'
 	cs_from common.ColorspaceType = .none

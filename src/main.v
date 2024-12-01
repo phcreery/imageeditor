@@ -112,9 +112,9 @@ fn (mut state AppState) open_image_dev() {
 	// image_path := 'sample/LIT_9419.JPG_edit.bmp'
 	// mut image := load_image(image_path)
 	image_path1 := 'sample/DSC_6765.NEF'
-	// image_path1 := 'sample/Lenna.png'
+	image_path2 := 'sample/Lenna.png'
 	// state.center_image_original = imageio.load_image_raw(image_path)
-	state.catalog.parallel_load_images_by_path([image_path1])
+	state.catalog.parallel_load_images_by_path([image_path1, image_path2])
 }
 
 fn frame(mut state AppState) {

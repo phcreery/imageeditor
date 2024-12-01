@@ -131,7 +131,7 @@ pub fn load_image_raw(image_path string) Image {
 
 	mut data := unsafe { arrays.carray_to_varray[u8](libraw_processed_image.data, libraw_processed_image.data_size) }
 
-	println(libraw_processed_image.colors)
+	dump(libraw_processed_image.colors)
 
 	if libraw_processed_image.colors == 3 {
 		println('converting from RGB to RGBA')
@@ -224,7 +224,6 @@ pub fn (img Image) clone() Image {
 	}
 }
 
-// TODO: this is duplicated in utils.v
 @[direct_array_access]
 pub fn buf_rgb_to_rgba(mut buf_rgba []u8, buf_rgb []u8, size int) {
 	for i := 0; i < size; i++ {
