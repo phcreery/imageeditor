@@ -33,7 +33,7 @@ struct UIWindowBasicEdits implements CimguiState {
 pub mut:
 	is_open bool          = true
 	pos     cimgui.ImVec2 = cimgui.ImVec2{sapp.width() - 400 - 10, 10}
-	size    cimgui.ImVec2 = cimgui.ImVec2{400, 100}
+	size    cimgui.ImVec2 = cimgui.ImVec2{400, 600}
 }
 
 struct UIWindows {

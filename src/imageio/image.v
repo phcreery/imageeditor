@@ -11,22 +11,17 @@ pub struct Image {
 pub mut:
 	width       int
 	height      int
-	nr_channels int
+	nr_channels int = 4 // TODO: remove this field, make internal nr_channels always 4
 	data        []u8
 }
 
 @[direct_array_access]
 pub fn (img Image) get_pixel[T](x int, y int) T {
 	// dump(img.nr_channels)
-	// if img.nr_channels != 3 {
-	// 	panic('nr_channels must be 3')
+	// if img.nr_channels != 4 {
+	// 	panic('nr_channels must be 4')
 	// }
 	index := (y * img.width + x) * img.nr_channels
-	// return common.RGBu8{
-	// 	r: img.data[index]
-	// 	g: img.data[index + 1]
-	// 	b: img.data[index + 2]
-	// }
 
 	$if T is common.RGBu8 {
 		return common.RGBu8{
@@ -39,7 +34,20 @@ pub fn (img Image) get_pixel[T](x int, y int) T {
 			r: img.data[index]
 			g: img.data[index + 1]
 			b: img.data[index + 2]
-			a: 0xFF
+			a: img.data[index + 3]
+		}
+	} $else $if T is common.RGB {
+		return common.RGB{
+			r: f64(img.data[index]) / 255
+			g: f64(img.data[index + 1]) / 255
+			b: f64(img.data[index + 2]) / 255
+		}
+	} $else $if T is common.RGBA {
+		return common.RGBA{
+			r: f64(img.data[index]) / 255
+			g: f64(img.data[index + 1]) / 255
+			b: f64(img.data[index + 2]) / 255
+			a: f64(img.data[index + 3]) / 255
 		}
 	} $else {
 		panic('unsupported type')
@@ -49,23 +57,31 @@ pub fn (img Image) get_pixel[T](x int, y int) T {
 @[direct_array_access]
 pub fn (mut img Image) set_pixel[T](x int, y int, rgb T) {
 	// dump(img.nr_channels)
-	// if img.nr_channels != 3 {
-	// 	panic('nr_channels must be 3')
+	// if img.nr_channels != 4 {
+	// 	panic('nr_channels must be 4')
 	// }
 	index := (y * img.width + x) * img.nr_channels
-	// img.data[index] = rgb.r
-	// img.data[index + 1] = rgb.g
-	// img.data[index + 2] = rgb.b
 
 	$if T is common.RGBu8 {
 		img.data[index] = rgb.r
 		img.data[index + 1] = rgb.g
 		img.data[index + 2] = rgb.b
+		img.data[index + 3] = 0xFF
 	} $else $if T is common.RGBAu8 {
 		img.data[index] = rgb.r
 		img.data[index + 1] = rgb.g
 		img.data[index + 2] = rgb.b
 		img.data[index + 3] = rgb.a
+	} $else $if T is common.RGB {
+		img.data[index] = u8(rgb.r * 255)
+		img.data[index + 1] = u8(rgb.g * 255)
+		img.data[index + 2] = u8(rgb.b * 255)
+		img.data[index + 3] = 0xFF
+	} $else $if T is common.RGBA {
+		img.data[index] = u8(rgb.r * 255)
+		img.data[index + 1] = u8(rgb.g * 255)
+		img.data[index + 2] = u8(rgb.b * 255)
+		img.data[index + 3] = u8(rgb.a * 255)
 	} $else {
 		panic('unsupported type')
 	}
@@ -89,6 +105,7 @@ pub fn load_image(image_path string) Image {
 	mut data := unsafe {
 		arrays.carray_to_varray[u8](stbi_image.data, stbi_image.width * stbi_image.height * 4)
 	}
+	println('data_rgba first 4 bytes ${data[0]} ${data[1]} ${data[2]} ${data[3]}')
 
 	image := Image{
 		width:       stbi_image.width

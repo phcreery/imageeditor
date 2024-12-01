@@ -4,7 +4,6 @@ import processing
 import libs.cimgui
 import common
 import math
-import math.vec
 import processing.cpu
 
 pub struct Temperature implements Edit {
@@ -14,7 +13,7 @@ pub struct Temperature implements Edit {
 	needed_backends []common.BackendID    = [common.BackendID.cpu]
 pub mut:
 	enabled bool
-	temp    f32             = 0.5
+	temp    f32             = 1000
 	amount  f32             = 1
 	dc      DebouncedChange = DebouncedChange{}
 }
@@ -25,11 +24,15 @@ pub fn (mut temp Temperature) draw() bool {
 	changed ||= cimgui.ig_checkbox(temp.name.str, &temp.enabled)
 
 	cimgui.ig_push_id_str('Temp_Slider'.str)
-	changed ||= cimgui.ig_slider_float(temp.name.str, &temp.temp, 0.0, 1.0, '%.3f'.str,
+	changed ||= cimgui.ig_slider_float('Temp'.str, &temp.temp, 1000, 40000.0, '%.0f K'.str,
 		.im_gui_slider_flags_none)
 
 	// cimgui.ig_same_line(0, 10)
 	// cimgui.ig_text('Temperature'.str)
+	cimgui.ig_pop_id()
+
+	cimgui.ig_push_id_str('Amount_Slider'.str)
+	changed ||= cimgui.ig_slider_float('Amount'.str, &temp.amount, 0, 1, '%.2f'.str, .im_gui_slider_flags_none)
 	cimgui.ig_pop_id()
 
 	return temp.dc.debounce(changed)
@@ -215,20 +218,11 @@ fn adjust_temp(pixel common.RGB, temperature f64, amount f64) common.RGB {
 }
 
 pub fn (mut backend ExternBackendCPU) adjust_temp(temp f64, amount f64) {
-	// newimg := backend.image_device_current.clone()
 	for y in 0 .. backend.image_device_current.height {
 		for x in 0 .. backend.image_device_current.width {
-			// pixel_rgbu8 := backend.image_device_current.get_pixel(x, y)
-			// pixel_rgb := rgbu8_to_rgbf64(pixel_rgbu8)
-			// temp_pixel_rgb := adjust_temp(pixel_rgb, 4500, 1.0)
-			// clamped_rgb := clamp_rgbf64_to_rgbu8(temp_pixel_rgb)
-			// debug red
-			backend.image_device_next.set_pixel[common.RGBAu8](x, y, common.RGBAu8{
-				r: u8(255)
-				g: u8(0)
-				b: u8(0)
-				a: u8(255)
-			})
+			pixel_rgb := backend.image_device_current.get_pixel[common.RGB](x, y)
+			temp_pixel_rgb := adjust_temp(pixel_rgb, temp, amount)
+			backend.image_device_next.set_pixel[common.RGB](x, y, temp_pixel_rgb)
 		}
 	}
 	backend.swap_images()

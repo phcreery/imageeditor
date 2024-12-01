@@ -20,20 +20,10 @@ enum PixelPipeType {
 
 pub struct PixelPipeline {
 pub mut:
-	// backend processing.Backend = processing.Backend.new()
-	// backend cl.BackendCL = cl.create_backend_cl()
-	// backend cl.BackendCL = cl.BackendCL.new()
-	// backend_cl  &processing.Backend = cl.BackendCL.new()
-	// backend_cpu &processing.Backend = cpu.BackendCPU.new()
-	backends []&processing.Backend
-
-	// cl.BackendCL.new()
-	// backend_cpu &processing.Backend
-	type  PixelPipeType
-	dirty bool
-	edits []&Edit
-
-	// current_backend_id common.BackendID = common.BackendID.none
+	backends        []&processing.Backend
+	type            PixelPipeType
+	dirty           bool
+	edits           []&Edit
 	current_backend ?&processing.Backend
 }
 
@@ -81,13 +71,14 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 		if edit.enabled {
 			// Strategize:
 			// dump(pixpipe.current_backend)
-			dump(edit.needed_backends)
+			// dump(edit.needed_backends)
 
 			// if the current backend is not supported by the edit, move the image to the supported backend
 			mut needs_to_move := false
 			if pixpipe.current_backend != none {
 				if !edit.needed_backends.any(it == pixpipe.current_backend.id) {
 					needs_to_move = true
+					pixpipe.current_backend.copy_device_to_host(mut new_img)
 				}
 			} else {
 				println('no backend selected')
@@ -112,9 +103,8 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 				pixpipe.current_backend = pixpipe.backends[new_backend_idx]
 
 				if pixpipe.current_backend != none {
-					dump(pixpipe.current_backend.id)
-					pixpipe.current_backend.copy_host_to_device(img)
-					b.measure('pixelpipeline process copy_host_to_device')
+					pixpipe.current_backend.copy_host_to_device(new_img)
+					b.measure('pixelpipeline process copy_host_to_device ${pixpipe.current_backend.id}')
 				}
 			}
 
@@ -128,7 +118,7 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 	// // TODO: memory manage per edit
 	if pixpipe.current_backend != none {
 		pixpipe.current_backend.copy_device_to_host(mut new_img)
-		b.measure('pixelpipeline process copy_device_to_host')
+		b.measure('pixelpipeline process copy_device_to_host ${pixpipe.current_backend.id}')
 	}
 	pixpipe.dirty = false
 

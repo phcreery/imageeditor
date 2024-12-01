@@ -25,9 +25,24 @@ pub fn (mut backend BackendCPU) init() {
 	// init device
 }
 
-pub fn (mut backend BackendCPU) copy_host_to_device(image &imageio.Image) {
-	backend.image_device_current = image
-	backend.image_device_next = image
+pub fn (mut backend BackendCPU) copy_host_to_device(image imageio.Image) {
+	// backend.image_device_current = image.clone()
+	// backend.image_device_next = image
+	backend.image_device_current = &imageio.Image{
+		width:  image.width
+		height: image.height
+
+		// TODO: improve, this is slow
+		data: image.data.clone()
+	}
+
+	backend.image_device_next = &imageio.Image{
+		width:  image.width
+		height: image.height
+
+		// TODO: improve, this is slow
+		data: image.data.clone()
+	}
 }
 
 pub fn (mut backend BackendCPU) swap_images() {
