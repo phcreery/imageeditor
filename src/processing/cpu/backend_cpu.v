@@ -5,7 +5,6 @@ import common
 
 pub struct BackendCPU {
 mut:
-	// image &imageio.Image
 	image_device_current &imageio.Image = &imageio.Image{}
 	image_device_next    &imageio.Image = &imageio.Image{}
 pub:
@@ -26,8 +25,6 @@ pub fn (mut backend BackendCPU) init() {
 }
 
 pub fn (mut backend BackendCPU) copy_host_to_device(image imageio.Image) {
-	// backend.image_device_current = image.clone()
-	// backend.image_device_next = image
 	backend.image_device_current = &imageio.Image{
 		width:  image.width
 		height: image.height

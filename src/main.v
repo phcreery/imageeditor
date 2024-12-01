@@ -124,14 +124,15 @@ fn frame(mut state AppState) {
 	state.fg.begin_frame()
 	if state.center_image_pixpipe.dirty {
 		// do processing
-		println('processing...')
+		println('')
+		// println('processing...')
 		mut b := benchmark.start()
 		state.center_image_pixpipe.process(state.center_image_original, mut state.center_image_processed)
 		b.measure('main process')
 		state.center_image_rendered.update(state.center_image_processed)
 		b.measure('main update center image')
 		println(b.total_message('main'))
-		println('done')
+		// println('done')
 	}
 
 	desc := simgui.SimguiFrameDesc{

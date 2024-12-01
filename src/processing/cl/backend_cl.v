@@ -11,8 +11,10 @@ pub const root = os.dir(@VMODROOT)
 
 pub struct BackendCL {
 mut:
-	device               &vcl.Device = unsafe { nil }
-	image                imageio.Image
+	device &vcl.Device = unsafe { nil }
+
+	// TODO: is this needed?
+	// image                imageio.Image
 	image_device_current &vcl.Image = unsafe { nil }
 	image_device_next    &vcl.Image = unsafe { nil }
 pub:
@@ -39,7 +41,7 @@ pub fn (mut backend BackendCL) init() {
 
 pub fn (mut backend BackendCL) copy_host_to_device(image imageio.Image) {
 	// load image from host to device
-	backend.image = image
+	// backend.image = image
 	stbi_img := stbi.Image{
 		width:       image.width
 		height:      image.height

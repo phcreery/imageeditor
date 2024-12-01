@@ -12,10 +12,10 @@ pub struct Temperature implements Edit {
 	cs_to           common.ColorspaceType = .rgb
 	needed_backends []common.BackendID    = [common.BackendID.cpu]
 pub mut:
-	enabled bool
-	temp    f32             = 1000
-	amount  f32             = 1
-	dc      DebouncedChange = DebouncedChange{}
+	enabled     bool
+	temperature f32             = 1000
+	amount      f32             = 1
+	dc          DebouncedChange = DebouncedChange{}
 }
 
 pub fn (mut temp Temperature) draw() bool {
@@ -24,7 +24,7 @@ pub fn (mut temp Temperature) draw() bool {
 	changed ||= cimgui.ig_checkbox(temp.name.str, &temp.enabled)
 
 	cimgui.ig_push_id_str('Temp_Slider'.str)
-	changed ||= cimgui.ig_slider_float('Temp'.str, &temp.temp, 1000, 40000.0, '%.0f K'.str,
+	changed ||= cimgui.ig_slider_float('Temp'.str, &temp.temperature, 1000, 40000.0, '%.0f K'.str,
 		.im_gui_slider_flags_none)
 
 	// cimgui.ig_same_line(0, 10)
@@ -43,7 +43,7 @@ pub fn (temp Temperature) process(mut backend processing.Backend) {
 	if mut backend is cpu.BackendCPU {
 		// backend.process_cpu()
 		mut eb_cpu := unsafe { &ExternBackendCPU(backend) }
-		eb_cpu.adjust_temp(temp.temp, temp.amount)
+		eb_cpu.adjust_temp(temp.temperature, temp.amount)
 	}
 }
 
@@ -217,11 +217,11 @@ fn adjust_temp(pixel common.RGB, temperature f64, amount f64) common.RGB {
 	// return color_temp
 }
 
-pub fn (mut backend ExternBackendCPU) adjust_temp(temp f64, amount f64) {
+pub fn (mut backend ExternBackendCPU) adjust_temp(temperature f64, amount f64) {
 	for y in 0 .. backend.image_device_current.height {
 		for x in 0 .. backend.image_device_current.width {
 			pixel_rgb := backend.image_device_current.get_pixel[common.RGB](x, y)
-			temp_pixel_rgb := adjust_temp(pixel_rgb, temp, amount)
+			temp_pixel_rgb := adjust_temp(pixel_rgb, temperature, amount)
 			backend.image_device_next.set_pixel[common.RGB](x, y, temp_pixel_rgb)
 		}
 	}
@@ -232,5 +232,4 @@ pub fn (mut backend ExternBackendCPU) adjust_temp(temp f64, amount f64) {
 
 // process_cl()
 // pub fn (invert Temperature) process(mut backend cl.BackendCL) {
-// 	backend.invert()
 // }

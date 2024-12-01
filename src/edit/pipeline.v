@@ -70,8 +70,6 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 	for mut edit in pixpipe.edits {
 		if edit.enabled {
 			// Strategize:
-			// dump(pixpipe.current_backend)
-			// dump(edit.needed_backends)
 
 			// if the current backend is not supported by the edit, move the image to the supported backend
 			mut needs_to_move := false
@@ -81,12 +79,11 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 					pixpipe.current_backend.copy_device_to_host(mut new_img)
 				}
 			} else {
-				println('no backend selected')
 				needs_to_move = true
 			}
 
 			if needs_to_move {
-				println('edit not supported by current backend')
+				println('edit does not support currently loaded backend, moving image to supported backend')
 
 				// move image to supported backend
 				new_backend_id := arrays.find_first(edit.needed_backends, fn [pixpipe] (needed_id common.BackendID) bool {
@@ -108,6 +105,7 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 				}
 			}
 
+			////////// process edit //////////
 			if pixpipe.current_backend != none {
 				edit.process(mut pixpipe.current_backend)
 				b.measure('process ${edit.name}')
@@ -115,18 +113,16 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 		}
 	}
 
-	// // TODO: memory manage per edit
 	if pixpipe.current_backend != none {
 		pixpipe.current_backend.copy_device_to_host(mut new_img)
 		b.measure('pixelpipeline process copy_device_to_host ${pixpipe.current_backend.id}')
 	}
 	pixpipe.dirty = false
 
-	println(b.total_message('pixelpipeline process'))
+	println(b.total_message('pixelpipeline process total'))
 }
 
 pub fn (mut pixpipe PixelPipeline) shutdown() {
-	// pixpipe.backend.shutdown()
 	for mut backend in pixpipe.backends {
 		backend.shutdown()
 	}
