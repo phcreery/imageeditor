@@ -63,7 +63,10 @@ fn draw_about_window(mut state AppState) {
 	cimgui.ig_text('build date: ${@BUILD_DATE} ${@BUILD_TIME}'.str)
 	cimgui.ig_text('cimgui version: ${state.windows.about.cimgui_version}'.str)
 	cimgui.ig_text('LibRaw version: ${state.windows.about.libraw_version}'.str)
-	// cimgui.ig_text('Backend: ${state.center_image_pixpipe.backend.name} (${state.center_image_pixpipe.backend.version})'.str)
+
+	for backend in state.center_image_pixpipe.backends {
+		cimgui.ig_text('Backend: ${backend.name} ${backend.version}'.str)
+	}
 
 	cimgui.ig_text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})'.str)
 	cimgui.ig_plot_lines_float_ptr('FPS'.str, state.fg.fps_history.data, 100, 0, c'',
