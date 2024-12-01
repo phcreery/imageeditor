@@ -101,16 +101,20 @@ fn init(mut state AppState) {
 	state.center_image_pixpipe = edit.init_pixelpipeline()
 
 	state.windows = UIWindows.new()
+
+	// DEV
+	state.open_image_dev()
+	// state.set_catalog_current_image_index(selected)
 }
 
 fn (mut state AppState) open_image_dev() {
 	// DEV
-	// image_path := 'Lenna.png'
 	// image_path := 'sample/LIT_9419.JPG_edit.bmp'
 	// mut image := load_image(image_path)
-	image_path := 'sample/DSC_6765.NEF'
+	image_path1 := 'sample/DSC_6765.NEF'
+	// image_path1 := 'sample/Lenna.png'
 	// state.center_image_original = imageio.load_image_raw(image_path)
-	state.catalog.parallel_load_images_by_path([image_path])
+	state.catalog.parallel_load_images_by_path([image_path1])
 }
 
 fn frame(mut state AppState) {

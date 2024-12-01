@@ -7,7 +7,7 @@ import imageio
 import arrays
 import common
 
-pub const root = os.dir(@FILE)
+pub const root = os.dir(@VMODROOT)
 
 pub struct BackendCL {
 mut:
@@ -22,9 +22,9 @@ pub:
 	version string
 }
 
-pub fn BackendCL.new() BackendCL {
+pub fn BackendCL.new() &BackendCL {
 	mut device := vcl.get_default_device() or { panic(err) }
-	return BackendCL{
+	return &BackendCL{
 		status:               'ok'
 		device:               device
 		version:              device.open_clc_version() or { panic(err) }
@@ -33,17 +33,6 @@ pub fn BackendCL.new() BackendCL {
 	}
 }
 
-// @[deprecated: 'use BackendCL.new()']
-// pub fn create_backend_cl() BackendCL {
-// 	mut device := vcl.get_default_device() or { panic(err) }
-// 	return BackendCL{
-// 		status:               'ok'
-// 		device:               device
-// 		version:              device.open_clc_version() or { panic(err) }
-// 		image_device_current: unsafe { nil }
-// 		image_device_next:    unsafe { nil }
-// 	}
-// }
 pub fn (mut backend BackendCL) init() {
 	return
 }

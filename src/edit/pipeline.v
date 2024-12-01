@@ -20,7 +20,7 @@ pub mut:
 	// backend processing.Backend = processing.Backend.new()
 	// backend cl.BackendCL = cl.create_backend_cl()
 	// backend cl.BackendCL = cl.BackendCL.new()
-	backend processing.Backend = processing.Backend(cl.BackendCL.new())
+	backend &processing.Backend = cl.BackendCL.new()
 
 	// cl.BackendCL.new()
 	// backend_cpu &processing.Backend

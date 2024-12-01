@@ -2,7 +2,6 @@ module edit
 
 import processing
 import common
-import processing.cl
 
 interface Edit {
 	name    string
@@ -12,7 +11,5 @@ mut:
 	enabled bool
 
 	process(mut backend processing.Backend)
-
-	// process(mut backend cl.BackendCL)
 	draw() bool
 }

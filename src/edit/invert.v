@@ -3,7 +3,6 @@ module edit
 import processing
 import libs.cimgui
 import common
-import os
 import benchmark
 import processing.cl
 
@@ -21,24 +20,14 @@ pub fn (mut invert Invert) draw() bool {
 }
 
 pub fn (invert Invert) process(mut backend processing.Backend) {
-	// backend.invert()
 	if mut backend is cl.BackendCL {
-		backend.invert()
+		mut ebcl := unsafe { &ExternBackendCL(backend) }
+		ebcl.invert()
 	}
 }
 
-// process_cl()
-// pub fn (invert Invert) process(mut backend cl.BackendCL) {
-// 	backend.invert()
-// }
-
-// 	// backend.invert()
-// }
-
 ////////  OpenCL  //////////
-const invert_color_kernel = os.read_file(os.join_path(cl.root, 'kernels/invert.cl')) or {
-	panic(err)
-}
+const invert_color_kernel = $embed_file('../processing/cl/kernels/invert.cl').to_string()
 
 type ExternBackendCL = cl.BackendCL
 

@@ -16,14 +16,9 @@ pub mut:
 	dc    DebouncedChange = DebouncedChange{}
 }
 
-// fn Temperature.new() Temperature {
-// 	return Temperature{
-// 		enabled: false
-// 		dc:      DebouncedChange{
-// 			should_toggle: false
-// 		}
-// 	}
-// }
+pub fn (temp Temperature) process(mut backend processing.Backend) {
+	// backend.invert()
+}
 
 // pub fn (temp Temperature) process_cpu(mut backend processing.Backend) {
 // 	for yy in 0 .. backend..image.height {
@@ -37,9 +32,6 @@ pub mut:
 // 	}
 // 	return newimg
 // }
-pub fn (temp Temperature) process(mut backend processing.Backend) {
-	// backend.invert()
-}
 
 // process_cl()
 // pub fn (invert Temperature) process(mut backend cl.BackendCL) {

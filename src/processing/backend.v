@@ -1,6 +1,5 @@
 module processing
 
-import cl
 import imageio
 import common
 
@@ -15,11 +14,4 @@ mut:
 	copy_device_to_host(mut image imageio.Image)
 	swap_images()
 	shutdown()
-
-	// edits
-	// invert()
 }
-
-// pub fn Backend.new() Backend {
-// 	return cl.create_backend_cl()
-// }
