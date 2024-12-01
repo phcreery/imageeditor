@@ -4,37 +4,9 @@ import os
 import stbi
 import libs.libraw
 import arrays
+import common
 
-// RGB values in the range [0, 255] (u8).
-pub struct RGB {
-pub mut:
-	r u8
-	g u8
-	b u8
-}
-
-// RGB values in the range [0, 1] (f64).
-pub struct RGBf64 {
-pub mut:
-	r f64
-	g f64
-	b f64
-}
-
-pub struct HSV {
-pub mut:
-	h f64
-	s f64
-	v f64
-}
-
-pub struct HSL {
-pub mut:
-	h f64
-	s f64
-	l f64
-}
-
+@[heap]
 pub struct Image {
 pub mut:
 	width       int
@@ -44,27 +16,59 @@ pub mut:
 }
 
 @[direct_array_access]
-pub fn (img Image) get_pixel(x int, y int) RGB {
-	if img.nr_channels != 3 {
-		panic('nr_channels must be 3')
-	}
+pub fn (img Image) get_pixel[T](x int, y int) T {
+	// dump(img.nr_channels)
+	// if img.nr_channels != 3 {
+	// 	panic('nr_channels must be 3')
+	// }
 	index := (y * img.width + x) * img.nr_channels
-	return RGB{
-		r: img.data[index]
-		g: img.data[index + 1]
-		b: img.data[index + 2]
+	// return common.RGBu8{
+	// 	r: img.data[index]
+	// 	g: img.data[index + 1]
+	// 	b: img.data[index + 2]
+	// }
+
+	$if T is common.RGBu8 {
+		return common.RGBu8{
+			r: img.data[index]
+			g: img.data[index + 1]
+			b: img.data[index + 2]
+		}
+	} $else $if T is common.RGBAu8 {
+		return common.RGBAu8{
+			r: img.data[index]
+			g: img.data[index + 1]
+			b: img.data[index + 2]
+			a: 0xFF
+		}
+	} $else {
+		panic('unsupported type')
 	}
 }
 
 @[direct_array_access]
-pub fn (mut img Image) set_pixel(x int, y int, rgb RGB) {
-	if img.nr_channels != 3 {
-		panic('nr_channels must be 3')
-	}
+pub fn (mut img Image) set_pixel[T](x int, y int, rgb T) {
+	// dump(img.nr_channels)
+	// if img.nr_channels != 3 {
+	// 	panic('nr_channels must be 3')
+	// }
 	index := (y * img.width + x) * img.nr_channels
-	img.data[index] = rgb.r
-	img.data[index + 1] = rgb.g
-	img.data[index + 2] = rgb.b
+	// img.data[index] = rgb.r
+	// img.data[index + 1] = rgb.g
+	// img.data[index + 2] = rgb.b
+
+	$if T is common.RGBu8 {
+		img.data[index] = rgb.r
+		img.data[index + 1] = rgb.g
+		img.data[index + 2] = rgb.b
+	} $else $if T is common.RGBAu8 {
+		img.data[index] = rgb.r
+		img.data[index + 1] = rgb.g
+		img.data[index + 2] = rgb.b
+		img.data[index + 3] = rgb.a
+	} $else {
+		panic('unsupported type')
+	}
 }
 
 pub fn load_image(image_path string) Image {

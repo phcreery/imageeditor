@@ -16,16 +16,16 @@ mut:
 	image_device_current &vcl.Image = unsafe { nil }
 	image_device_next    &vcl.Image = unsafe { nil }
 pub:
-	name    string                     = 'OpenCL'
-	mem_ctx common.DeviceMemoryContext = .cl
-	status  string
+	name    string               = 'OpenCL'
+	id      common.BackendID     = .cl
+	status  common.BackendStatus = .notready
 	version string
 }
 
 pub fn BackendCL.new() &BackendCL {
 	mut device := vcl.get_default_device() or { panic(err) }
 	return &BackendCL{
-		status:               'ok'
+		status:               .ready
 		device:               device
 		version:              device.open_clc_version() or { panic(err) }
 		image_device_current: unsafe { nil }
@@ -34,10 +34,10 @@ pub fn BackendCL.new() &BackendCL {
 }
 
 pub fn (mut backend BackendCL) init() {
-	return
+	// init OpenCL device
 }
 
-pub fn (mut backend BackendCL) copy_host_to_device(image imageio.Image) {
+pub fn (mut backend BackendCL) copy_host_to_device(image &imageio.Image) {
 	// load image from host to device
 	backend.image = image
 	stbi_img := stbi.Image{

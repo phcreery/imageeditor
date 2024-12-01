@@ -7,9 +7,10 @@ import benchmark
 import processing.cl
 
 pub struct Invert implements Edit {
-	name    string                = 'Invert'
-	cs_from common.ColorspaceType = .rgb
-	cs_to   common.ColorspaceType = .rgb
+	name            string                = 'Invert'
+	cs_from         common.ColorspaceType = .rgb
+	cs_to           common.ColorspaceType = .rgb
+	needed_backends []common.BackendID    = [common.BackendID.cl]
 pub mut:
 	enabled bool
 }
@@ -21,8 +22,8 @@ pub fn (mut invert Invert) draw() bool {
 
 pub fn (invert Invert) process(mut backend processing.Backend) {
 	if mut backend is cl.BackendCL {
-		mut ebcl := unsafe { &ExternBackendCL(backend) }
-		ebcl.invert()
+		mut eb_cl := unsafe { &ExternBackendCL(backend) }
+		eb_cl.invert()
 	}
 }
 

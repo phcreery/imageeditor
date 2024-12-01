@@ -5,6 +5,9 @@ import processing
 import imageio
 import benchmark
 import processing.cl
+import processing.cpu
+import common
+import arrays
 
 // insp from darktable/src/develop/pixelpipe.h
 enum PixelPipeType {
@@ -20,25 +23,32 @@ pub mut:
 	// backend processing.Backend = processing.Backend.new()
 	// backend cl.BackendCL = cl.create_backend_cl()
 	// backend cl.BackendCL = cl.BackendCL.new()
-	backend &processing.Backend = cl.BackendCL.new()
+	// backend_cl  &processing.Backend = cl.BackendCL.new()
+	// backend_cpu &processing.Backend = cpu.BackendCPU.new()
+	backends []&processing.Backend
 
 	// cl.BackendCL.new()
 	// backend_cpu &processing.Backend
 	type  PixelPipeType
 	dirty bool
 	edits []&Edit
+
+	// current_backend_id common.BackendID = common.BackendID.none
+	current_backend ?&processing.Backend
 }
 
 pub fn init_pixelpipeline() PixelPipeline {
-	// mut backends := []&processing.Backend{}
-	// backends << processing.Backend.new()
+	mut backends := []&processing.Backend{}
+	backends << cpu.BackendCPU.new()
+	backends << cl.BackendCL.new()
 
 	// see darktable/src/common/iop_order.c
 	mut edits := []&Edit{}
 	edits << Invert{}
 	edits << Temperature{}
 	return PixelPipeline{
-		edits: edits
+		backends: backends
+		edits:    edits
 	}
 }
 
@@ -60,31 +70,74 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 		return
 	}
 
+	pixpipe.current_backend = ?&processing.Backend(none)
+
 	mut b := benchmark.start()
 
 	// TODO: colorspace handling
 
-	// TODO: memory manage per edit
-	pixpipe.backend.copy_host_to_device(img)
-	b.measure('pixelpipeline process copy_host_to_device')
-
 	// process edits
 	for mut edit in pixpipe.edits {
 		if edit.enabled {
-			edit.process(mut pixpipe.backend)
-			b.measure('process ${edit.name}')
+			// Strategize:
+			// dump(pixpipe.current_backend)
+			dump(edit.needed_backends)
+
+			// if the current backend is not supported by the edit, move the image to the supported backend
+			mut needs_to_move := false
+			if pixpipe.current_backend != none {
+				if !edit.needed_backends.any(it == pixpipe.current_backend.id) {
+					needs_to_move = true
+				}
+			} else {
+				println('no backend selected')
+				needs_to_move = true
+			}
+
+			if needs_to_move {
+				println('edit not supported by current backend')
+
+				// move image to supported backend
+				new_backend_id := arrays.find_first(edit.needed_backends, fn [pixpipe] (needed_id common.BackendID) bool {
+					return pixpipe.backends.any(fn [needed_id] (available &processing.Backend) bool {
+						return available.id == needed_id
+					})
+				}) or { panic('no ready backend found') }
+
+				// dump(new_backend_id)
+				new_backend_idx := arrays.index_of_first(pixpipe.backends, fn [new_backend_id] (idx int, backend &processing.Backend) bool {
+					return backend.id == new_backend_id
+				})
+
+				pixpipe.current_backend = pixpipe.backends[new_backend_idx]
+
+				if pixpipe.current_backend != none {
+					dump(pixpipe.current_backend.id)
+					pixpipe.current_backend.copy_host_to_device(img)
+					b.measure('pixelpipeline process copy_host_to_device')
+				}
+			}
+
+			if pixpipe.current_backend != none {
+				edit.process(mut pixpipe.current_backend)
+				b.measure('process ${edit.name}')
+			}
 		}
 	}
 
-	// TODO: memory manage per edit
-	pixpipe.backend.copy_device_to_host(mut new_img)
-	b.measure('pixelpipeline process copy_device_to_host')
-
+	// // TODO: memory manage per edit
+	if pixpipe.current_backend != none {
+		pixpipe.current_backend.copy_device_to_host(mut new_img)
+		b.measure('pixelpipeline process copy_device_to_host')
+	}
 	pixpipe.dirty = false
 
 	println(b.total_message('pixelpipeline process'))
 }
 
 pub fn (mut pixpipe PixelPipeline) shutdown() {
-	pixpipe.backend.shutdown()
+	// pixpipe.backend.shutdown()
+	for mut backend in pixpipe.backends {
+		backend.shutdown()
+	}
 }

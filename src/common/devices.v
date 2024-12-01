@@ -1,7 +1,13 @@
 module common
 
-// TODO rename to BackendID
-pub enum DeviceMemoryContext {
+pub enum BackendID {
+	none
 	cpu
 	cl
+}
+
+pub enum BackendStatus {
+	ready
+	notready
+	busy
 }

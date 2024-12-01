@@ -63,7 +63,7 @@ fn draw_about_window(mut state AppState) {
 	cimgui.ig_text('build date: ${@BUILD_DATE} ${@BUILD_TIME}'.str)
 	cimgui.ig_text('cimgui version: ${state.windows.about.cimgui_version}'.str)
 	cimgui.ig_text('LibRaw version: ${state.windows.about.libraw_version}'.str)
-	cimgui.ig_text('Backend: ${state.center_image_pixpipe.backend.name} (${state.center_image_pixpipe.backend.version})'.str)
+	// cimgui.ig_text('Backend: ${state.center_image_pixpipe.backend.name} (${state.center_image_pixpipe.backend.version})'.str)
 
 	cimgui.ig_text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})'.str)
 	cimgui.ig_plot_lines_float_ptr('FPS'.str, state.fg.fps_history.data, 100, 0, c'',
@@ -161,7 +161,7 @@ fn event(ev &sapp.Event, mut state AppState) {
 		.key_down {
 			match ev.key_code {
 				.backslash {
-					state.rendered_image.update(state.center_image_original)
+					state.center_image_rendered.update(state.center_image_original)
 				}
 				else {
 					// println('idk')
@@ -171,10 +171,10 @@ fn event(ev &sapp.Event, mut state AppState) {
 		.key_up {
 			match ev.key_code {
 				.backslash {
-					state.rendered_image.update(state.center_image_processed)
+					state.center_image_rendered.update(state.center_image_processed)
 				}
 				.space {
-					state.rendered_image.reset_params()
+					state.center_image_rendered.reset_params()
 				}
 				else {
 					// println('idk')
@@ -183,11 +183,11 @@ fn event(ev &sapp.Event, mut state AppState) {
 		}
 		.mouse_move {
 			if ev.modifiers == int(sapp.Modifier.lmb) {
-				state.rendered_image.move(ev.mouse_dx, ev.mouse_dy)
+				state.center_image_rendered.move(ev.mouse_dx, ev.mouse_dy)
 			}
 		}
 		.mouse_scroll {
-			state.rendered_image.scale(ev.scroll_y * 0.05)
+			state.center_image_rendered.scale(ev.scroll_y * 0.05)
 		}
 		else {
 			// println('idk')

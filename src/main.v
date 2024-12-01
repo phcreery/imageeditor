@@ -21,11 +21,11 @@ mut:
 	center_image_pixpipe        edit.PixelPipeline
 
 	// ui
-	pass_action    gfx.PassAction
-	rendered_image GfxImage
-	checkerboard   GfxTexture
-	windows        UIWindows
-	fg             FrameGovernor
+	pass_action           gfx.PassAction
+	center_image_rendered GfxImage
+	checkerboard          GfxTexture
+	windows               UIWindows
+	fg                    FrameGovernor
 }
 
 fn (mut state AppState) set_catalog_current_image_index(index int) {
@@ -41,9 +41,9 @@ fn (mut state AppState) set_catalog_current_image_index(index int) {
 		height: state.center_image_original.height
 	}
 	state.center_image_pixpipe.dirty = true
-	state.rendered_image.create(state.center_image_original)
-	state.rendered_image.update(state.center_image_original)
-	state.rendered_image.reset_params()
+	state.center_image_rendered.create(state.center_image_original)
+	state.center_image_rendered.update(state.center_image_original)
+	state.center_image_rendered.reset_params()
 	state.catalog_current_image_index = index
 }
 
@@ -89,7 +89,7 @@ fn init(mut state AppState) {
 		// clear_value: gfx.Color{0.0, 0.5, 1.0, 0.5}
 	}
 
-	state.rendered_image = GfxImage.new()
+	state.center_image_rendered = GfxImage.new()
 	state.checkerboard = GfxTexture.new_checkerboard()
 
 	state.fg = FrameGovernor{
@@ -109,12 +109,12 @@ fn init(mut state AppState) {
 
 fn (mut state AppState) open_image_dev() {
 	// DEV
-	// image_path := 'sample/LIT_9419.JPG_edit.bmp'
-	// mut image := load_image(image_path)
-	image_path1 := 'sample/DSC_6765.NEF'
-	image_path2 := 'sample/Lenna.png'
+	mut images := []string{}
+	// images << 'sample/DSC_6765.NEF'
+	images << 'sample/Lenna.png'
+	// images << 'sample/LIT_9419.JPG_edit.bmp'
 	// state.center_image_original = imageio.load_image_raw(image_path)
-	state.catalog.parallel_load_images_by_path([image_path1, image_path2])
+	state.catalog.parallel_load_images_by_path(images)
 }
 
 fn frame(mut state AppState) {
@@ -128,7 +128,7 @@ fn frame(mut state AppState) {
 		mut b := benchmark.start()
 		state.center_image_pixpipe.process(state.center_image_original, mut state.center_image_processed)
 		b.measure('main process')
-		state.rendered_image.update(state.center_image_processed)
+		state.center_image_rendered.update(state.center_image_processed)
 		b.measure('main update center image')
 		println(b.total_message('main'))
 		println('done')
@@ -151,7 +151,7 @@ fn frame(mut state AppState) {
 	sgl.ortho(-disp_w * 0.5, disp_w * 0.5, disp_h * 0.5, -disp_h * 0.5, -1.0, 1.0)
 
 	state.checkerboard.draw_checkerboard(disp_w, disp_h)
-	state.rendered_image.draw()
+	state.center_image_rendered.draw()
 	// SGL END
 
 	// UI START
