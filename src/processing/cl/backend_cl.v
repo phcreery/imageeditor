@@ -11,8 +11,6 @@ pub const root = os.dir(@VMODROOT)
 
 pub struct BackendCL {
 mut:
-	device &vcl.Device = unsafe { nil }
-
 	// TODO: is this needed?
 	// image                imageio.Image
 	image_device_current &vcl.Image = unsafe { nil }
@@ -22,6 +20,9 @@ pub:
 	id      common.BackendID     = .cl
 	status  common.BackendStatus = .notready
 	version string
+pub mut:
+	// internal
+	device &vcl.Device = unsafe { nil }
 }
 
 pub fn BackendCL.new() &BackendCL {

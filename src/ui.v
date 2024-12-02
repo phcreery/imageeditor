@@ -5,6 +5,7 @@ import libs.sokolext as _
 import libs.cimgui
 import libs.sokolext.simgui
 import libs.libraw
+import processing.cl
 
 interface CimguiState {
 	is_open bool
@@ -16,7 +17,7 @@ struct UIWindowAbout implements CimguiState {
 pub mut:
 	is_open bool          = true
 	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 10}
-	size    cimgui.ImVec2 = cimgui.ImVec2{400, 350}
+	size    cimgui.ImVec2 = cimgui.ImVec2{400, 400}
 
 	cimgui_version string = unsafe { cstring_to_vstring(&char(cimgui.ig_get_version())) }
 	libraw_version string = libraw.libraw_version()
@@ -25,7 +26,7 @@ pub mut:
 struct UIWindowCatalog implements CimguiState {
 pub mut:
 	is_open bool          = true
-	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 370}
+	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 420}
 	size    cimgui.ImVec2 = cimgui.ImVec2{400, 200}
 }
 
@@ -66,6 +67,9 @@ fn draw_about_window(mut state AppState) {
 
 	for backend in state.center_image_pixpipe.backends {
 		cimgui.ig_text('Backend: ${backend.name} ${backend.version}'.str)
+		if backend is cl.BackendCL {
+			cimgui.ig_text(' - ${*backend.device}'.str)
+		}
 	}
 
 	cimgui.ig_text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})'.str)

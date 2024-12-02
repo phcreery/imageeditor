@@ -4,7 +4,9 @@ import processing
 import libs.cimgui
 import common
 import math
+import time
 import processing.cpu
+import benchmark
 
 pub struct Temperature implements Edit {
 	name            string                = 'Temperature'
@@ -12,20 +14,39 @@ pub struct Temperature implements Edit {
 	cs_to           common.ColorspaceType = .rgb
 	needed_backends []common.BackendID    = [common.BackendID.cpu]
 pub mut:
+	process_time time.Duration
+	used_backend common.BackendID
+	dc           DebouncedChange = DebouncedChange{}
+
+	// internal
+	handle_color common.RGB
+
+	// params
 	enabled     bool
-	temperature f32             = 1000
-	amount      f32             = 1
-	dc          DebouncedChange = DebouncedChange{}
+	temperature f32 = 6600
+	amount      f32 = 1
 }
 
 pub fn (mut temp Temperature) draw() bool {
 	mut changed := false
 
+	cimgui.ig_separator_text(temp.name.str)
 	changed ||= cimgui.ig_checkbox(temp.name.str, &temp.enabled)
 
 	cimgui.ig_push_id_str('Temp_Slider'.str)
+
+	color_temp := get_temp_color(temp.temperature, temp.amount)
+	color_temp_ig_bg := cimgui.ImVec4{f32(color_temp.r), f32(color_temp.g), f32(color_temp.b), 0.6}
+	color_temp_ig_handle := cimgui.ImVec4{f32(color_temp.r), f32(color_temp.g), f32(color_temp.b), 1.0}
+	cimgui.ig_push_style_color_vec4(.im_gui_col_frame_bg, color_temp_ig_bg)
+	cimgui.ig_push_style_color_vec4(.im_gui_col_frame_bg_active, color_temp_ig_bg)
+	cimgui.ig_push_style_color_vec4(.im_gui_col_frame_bg_hovered, color_temp_ig_bg)
+	cimgui.ig_push_style_color_vec4(.im_gui_col_slider_grab, color_temp_ig_handle)
+
+	// cimgui.ig_push_style_color_vec4(.im_gui_col_slider_grab_active, color_temp_ig)
 	changed ||= cimgui.ig_slider_float('Temp'.str, &temp.temperature, 1000, 40000.0, '%.0f K'.str,
 		.im_gui_slider_flags_none)
+	cimgui.ig_pop_style_color(4)
 
 	// cimgui.ig_same_line(0, 10)
 	// cimgui.ig_text('Temperature'.str)
@@ -35,16 +56,19 @@ pub fn (mut temp Temperature) draw() bool {
 	changed ||= cimgui.ig_slider_float('Amount'.str, &temp.amount, 0, 1, '%.2f'.str, .im_gui_slider_flags_none)
 	cimgui.ig_pop_id()
 
+	cimgui.ig_text('(${temp.process_time} on ${temp.used_backend})'.str)
+
 	return temp.dc.debounce(changed)
 }
 
-pub fn (temp Temperature) process(mut backend processing.Backend) {
-	// backend.invert()
+pub fn (mut temp Temperature) process(mut backend processing.Backend) {
+	mut b := benchmark.start()
+	temp.used_backend = backend.id
 	if mut backend is cpu.BackendCPU {
-		// backend.process_cpu()
 		mut eb_cpu := unsafe { &ExternBackendCPU(backend) }
 		eb_cpu.adjust_temp(temp.temperature, temp.amount)
 	}
+	temp.process_time = b.step_timer.elapsed()
 }
 
 ////////  CPU  //////////
@@ -168,11 +192,7 @@ fn mix_colors(color1 common.RGB, color2 common.RGB, amount f64) common.RGB {
 	}
 }
 
-fn adjust_temp(pixel common.RGB, temperature f64, amount f64) common.RGB {
-	// adjust the temperature of the image
-	// https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
-	// https://www.shadertoy.com/view/lsSXW1
-
+fn get_temp_color(temperature f64, amount f64) common.RGB {
 	// Temperature must be between 1000 and 40000
 	temp := math.clamp(temperature, 1000, 40000) / 100
 	mut r := f64(0)
@@ -202,6 +222,16 @@ fn adjust_temp(pixel common.RGB, temperature f64, amount f64) common.RGB {
 		g: g
 		b: b
 	}
+
+	return color_temp
+}
+
+fn adjust_temp(pixel common.RGB, temperature f64, amount f64) common.RGB {
+	// adjust the temperature of the image
+	// https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
+	// https://www.shadertoy.com/view/lsSXW1
+	color_temp := get_temp_color(temperature, amount)
+
 	color_temp_times_pixel := common.RGB{
 		r: pixel.r * color_temp.r
 		g: pixel.g * color_temp.g

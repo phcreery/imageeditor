@@ -2,6 +2,7 @@ module edit
 
 import processing
 import common
+import time
 
 interface Edit {
 	name            string
@@ -9,7 +10,9 @@ interface Edit {
 	cs_to           common.ColorspaceType
 	needed_backends []common.BackendID
 mut:
-	enabled bool
+	enabled      bool
+	process_time time.Duration
+	used_backend common.BackendID
 
 	process(mut backend processing.Backend)
 	draw() bool

@@ -110,7 +110,8 @@ fn init(mut state AppState) {
 fn (mut state AppState) open_image_dev() {
 	// DEV
 	mut images := []string{}
-	images << 'sample/DSC_6765.NEF'
+	// images << 'sample/DSC_6765.NEF'
+	images << 'sample/photo_hat.jpg'
 	// images << 'sample/Lenna.png'
 	// images << 'sample/LIT_9419.JPG_edit.bmp'
 	// state.center_image_original = imageio.load_image_raw(image_path)

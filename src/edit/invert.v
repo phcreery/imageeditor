@@ -5,6 +5,7 @@ import libs.cimgui
 import common
 import benchmark
 import processing.cl
+import time
 
 pub struct Invert implements Edit {
 	name            string                = 'Invert'
@@ -12,19 +13,28 @@ pub struct Invert implements Edit {
 	cs_to           common.ColorspaceType = .rgb
 	needed_backends []common.BackendID    = [common.BackendID.cl]
 pub mut:
+	process_time time.Duration
+	used_backend common.BackendID
+
+	// params
 	enabled bool
 }
 
 pub fn (mut invert Invert) draw() bool {
+	cimgui.ig_separator_text(invert.name.str)
 	changed := cimgui.ig_checkbox('Invert'.str, &invert.enabled)
+	cimgui.ig_text('(${invert.process_time} on ${invert.used_backend})'.str)
 	return changed
 }
 
-pub fn (invert Invert) process(mut backend processing.Backend) {
+pub fn (mut invert Invert) process(mut backend processing.Backend) {
+	mut b := benchmark.start()
+	invert.used_backend = backend.id
 	if mut backend is cl.BackendCL {
 		mut eb_cl := unsafe { &ExternBackendCL(backend) }
 		eb_cl.invert()
 	}
+	invert.process_time = b.step_timer.elapsed()
 }
 
 ////////  OpenCL  //////////
