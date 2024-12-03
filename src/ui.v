@@ -156,7 +156,7 @@ fn draw_processing_dialog_window(mut state AppState) {
 	cimgui.ig_set_next_window_size(size, .im_gui_cond_once)
 
 	// begin
-	flags := unsafe { cimgui.ImGuiWindowFlags(i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_title_bar) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_resize) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_move) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_collapse) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_nav) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_bring_to_front_on_focus)) }
+	flags := unsafe { cimgui.ImGuiWindowFlags(i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_title_bar) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_resize) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_move) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_collapse) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_nav) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_bring_to_front_on_focus) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_focus_on_appearing)) }
 	// | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_background)
 	cimgui.ig_begin('Processing'.str, &state.center_image_pixpipe.dirty, flags)
 	// content
