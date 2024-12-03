@@ -144,6 +144,28 @@ fn draw_edit_window(mut state AppState) {
 	cimgui.ig_end()
 }
 
+fn draw_processing_dialog_window(mut state AppState) {
+	if !state.center_image_pixpipe.dirty {
+		return
+	}
+
+	size := cimgui.ImVec2{100, 20}
+	x0, y0 := state.center_image_rendered.ul()
+	pos := cimgui.ImVec2{x0 + 10 + sapp.width() / 2, y0 + 10 + sapp.height() / 2}
+	cimgui.ig_set_next_window_pos(pos, .im_gui_cond_always, cimgui.ImVec2{0, 0})
+	cimgui.ig_set_next_window_size(size, .im_gui_cond_once)
+
+	// begin
+	flags := unsafe { cimgui.ImGuiWindowFlags(i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_title_bar) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_resize) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_move) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_collapse) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_nav) | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_bring_to_front_on_focus)) }
+	// | i32(cimgui.ImGuiWindowFlags.im_gui_window_flags_no_background)
+	cimgui.ig_begin('Processing'.str, &state.center_image_pixpipe.dirty, flags)
+	// content
+	cimgui.ig_text('Processing...'.str)
+	// end
+	cimgui.ig_end()
+}
+
+// NOTE: these are not methods of AppState or Windows because we need access to the entire app state to draw the window contents
 fn draw_windows(mut state AppState) {
 	// v -cg ...
 	$if debug {
@@ -154,6 +176,7 @@ fn draw_windows(mut state AppState) {
 	draw_about_window(mut state)
 	draw_edit_window(mut state)
 	draw_catalog_window(mut state)
+	draw_processing_dialog_window(mut state)
 }
 
 fn event(ev &sapp.Event, mut state AppState) {

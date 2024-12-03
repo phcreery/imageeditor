@@ -125,17 +125,32 @@ fn (mut gfx_image GfxImage) update(image imageio.Image) {
 	gfx.update_image(gfx_image.image, &image_data)
 }
 
+fn (mut gfx_image GfxImage) ul() (f32, f32) {
+	x0 := ((-gfx_image.width * 0.5) * gfx_image.scale) + (gfx_image.offset.x * gfx_image.scale)
+	y0 := ((-gfx_image.height * 0.5) * gfx_image.scale) + (gfx_image.offset.y * gfx_image.scale)
+	return x0, y0
+}
+
+fn (mut gfx_image GfxImage) lr() (f32, f32) {
+	x0, y0 := gfx_image.ul()
+	x1 := x0 + (gfx_image.width * gfx_image.scale)
+	y1 := y0 + (gfx_image.height * gfx_image.scale)
+	return x1, y1
+}
+
 fn (mut gfx_image GfxImage) draw() {
 	// draw actual image
-	x0 := ((-gfx_image.width * 0.5) * gfx_image.scale) + (gfx_image.offset.x * gfx_image.scale)
-	x1 := x0 + (gfx_image.width * gfx_image.scale)
-	y0 := ((-gfx_image.height * 0.5) * gfx_image.scale) + (gfx_image.offset.y * gfx_image.scale)
-	y1 := y0 + (gfx_image.height * gfx_image.scale)
+	// x0 := ((-gfx_image.width * 0.5) * gfx_image.scale) + (gfx_image.offset.x * gfx_image.scale)
+	// x1 := x0 + (gfx_image.width * gfx_image.scale)
+	// y0 := ((-gfx_image.height * 0.5) * gfx_image.scale) + (gfx_image.offset.y * gfx_image.scale)
+	// y1 := y0 + (gfx_image.height * gfx_image.scale)
+	x0, y0 := gfx_image.ul()
+	x1, y1 := gfx_image.lr()
 
 	sgl.texture(gfx_image.image, gfx_image.sampler)
 	sgl.load_pipeline(gfx_image.pipeline)
 
-	// sgl.c3f(state.center_image_rendered.color.r, state.center_image_rendered.color.g, state.center_image_rendered.color.b)
+	// sgl.c3f(0.5, 0.5, 0.5)
 	sgl.begin_quads()
 	sgl.v2f_t2f(x0, y0, 0.0, 0.0)
 	sgl.v2f_t2f(x1, y0, 1.0, 0.0)
@@ -145,7 +160,7 @@ fn (mut gfx_image GfxImage) draw() {
 }
 
 fn GfxTexture.new_checkerboard() GfxTexture {
-	// texture and sampler for rendering checkboard background
+	// texture and sampler for rendering checkerboard background
 	mut pixels := [][]u32{len: 4, init: []u32{len: 4}}
 	for y := 0; y < 4; y++ {
 		for x := 0; x < 4; x++ {

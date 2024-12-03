@@ -75,7 +75,7 @@ pub fn (mut temp Temperature) process(mut backend processing.Backend) {
 type ExternBackendCPU = cpu.BackendCPU
 
 // TODO: move elsewhere, maybe backends/cpu/common.v
-pub fn clamp_rgbf64_to_rgbu8(c common.RGB) common.RGBu8 {
+pub fn clamp_rgb_to_rgbu8(c common.RGB) common.RGBu8 {
 	return common.RGBu8{
 		r: u8(math.clamp(c.r * 255, min_u8, max_u8))
 		g: u8(math.clamp(c.g * 255, min_u8, max_u8))
