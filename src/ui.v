@@ -17,7 +17,7 @@ struct UIWindowAbout implements CimguiState {
 pub mut:
 	is_open bool          = true
 	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 10}
-	size    cimgui.ImVec2 = cimgui.ImVec2{400, 400}
+	size    cimgui.ImVec2 = cimgui.ImVec2{300, 400}
 
 	cimgui_version string = unsafe { cstring_to_vstring(&char(cimgui.ig_get_version())) }
 	libraw_version string = libraw.libraw_version()
@@ -27,14 +27,14 @@ struct UIWindowCatalog implements CimguiState {
 pub mut:
 	is_open bool          = true
 	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 420}
-	size    cimgui.ImVec2 = cimgui.ImVec2{400, 200}
+	size    cimgui.ImVec2 = cimgui.ImVec2{300, 200}
 }
 
 struct UIWindowBasicEdits implements CimguiState {
 pub mut:
 	is_open bool          = true
-	pos     cimgui.ImVec2 = cimgui.ImVec2{sapp.width() - 400 - 10, 10}
-	size    cimgui.ImVec2 = cimgui.ImVec2{400, 600}
+	pos     cimgui.ImVec2 = cimgui.ImVec2{sapp.width() - 300 - 10, 10}
+	size    cimgui.ImVec2 = cimgui.ImVec2{300, 600}
 }
 
 struct UIWindows {
@@ -108,7 +108,7 @@ fn draw_catalog_window(mut state AppState) {
 	for mut image in state.catalog.images {
 		image_names << '${image.path} (${image.status})'
 	}
-	selected := state.catalog_current_image_index
+	mut selected := state.catalog_current_image_index
 	mut image_names_ptrs := []&u8{len: image_names.len, init: 0}
 	for i, item in image_names {
 		image_names_ptrs[i] = item.str
@@ -117,8 +117,23 @@ fn draw_catalog_window(mut state AppState) {
 		image_names_ptrs = []&u8{len: 1, init: 0}
 	}
 
-	changed ||= cimgui.ig_list_box_str_arr('Catalog'.str, &selected, &image_names_ptrs[0],
-		image_names.len, 5)
+	// changed ||= cimgui.ig_list_box_str_arr('Catalog'.str, &selected, &image_names_ptrs[0],
+	// 	image_names.len, 5)
+	cimgui.ig_push_id_str('Catalog'.str)
+	cimgui.ig_begin_list_box(''.str, cimgui.ImVec2{-2, 8 * cimgui.ig_get_text_line_height_with_spacing()})
+
+	for i, item in image_names {
+		if cimgui.ig_selectable_bool(item.str, selected == i, .im_gui_selectable_flags_none,
+			cimgui.ImVec2{0, 0})
+		{
+			selected = i
+			changed = true
+		}
+	}
+
+	cimgui.ig_end_list_box()
+	cimgui.ig_pop_id()
+
 	if changed {
 		state.set_catalog_current_image_index(selected)
 	}
