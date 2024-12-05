@@ -105,7 +105,7 @@ pub fn load_image(image_path string) Image {
 	mut data := unsafe {
 		arrays.carray_to_varray[u8](stbi_image.data, stbi_image.width * stbi_image.height * 4)
 	}
-	println('data_rgba first 4 bytes ${data[0]} ${data[1]} ${data[2]} ${data[3]}')
+	// println('data_rgba first 4 bytes ${data[0]} ${data[1]} ${data[2]} ${data[3]}')
 
 	image := Image{
 		width:       stbi_image.width
@@ -187,6 +187,8 @@ pub fn load_image_raw2(image_path string, shared image Image) {
 	println('unpacked ${status}')
 
 	// Convert from imgdata.rawdata to imgdata.image using raw2image
+	// see: https://github.com/LibRaw/LibRaw/blob/master/samples/unprocessed_raw.cpp
+	// and https://github.com/LibRaw/LibRaw/blob/master/samples/4channels.cpp
 	// status = libraw.libraw_raw2image(libraw_data)
 	// println('raw2image ${status}')
 	// dump(libraw_data.image)
@@ -197,17 +199,16 @@ pub fn load_image_raw2(image_path string, shared image Image) {
 	// g2 := arrays.carray_to_varray[i16](libraw_data.image[3], buffer_size)
 
 	// Convert from imgdata.rawdata to imgdata.image using dcraw_process
+	// TODO: dont use dcraw emulation functions, use raw2image instead
 	status = libraw.libraw_dcraw_process(libraw_data)
-	println('dcraw_process ${status}')
+	// println('dcraw_process ${status}')
 	libraw_processed_image := libraw.libraw_dcraw_make_mem_image(libraw_data, &status)
-	println('dcraw_make_mem_image ${status}')
-	dump(libraw_processed_image)
-
-	println('libraw_processed_image.data ${libraw_processed_image.data}')
+	// println('dcraw_make_mem_image ${status}')
+	// dump(libraw_processed_image)
 
 	mut data := unsafe { arrays.carray_to_varray[u8](libraw_processed_image.data, int(libraw_processed_image.data_size)) }
 
-	println(libraw_processed_image.colors)
+	// println(libraw_processed_image.colors)
 
 	if libraw_processed_image.colors == 3 {
 		println('converting from RGB to RGBA')
@@ -215,7 +216,7 @@ pub fn load_image_raw2(image_path string, shared image Image) {
 		buf_rgb_to_rgba(mut data_rgba, data, libraw_processed_image.width * libraw_processed_image.height)
 		data = data_rgba.clone()
 	}
-	println('data_rgba first 4 bytes ${data[0]} ${data[1]} ${data[2]} ${data[3]}')
+	// println('data_rgba first 4 bytes ${data[0]} ${data[1]} ${data[2]} ${data[3]}')
 
 	// image
 	lock image {
