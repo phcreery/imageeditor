@@ -7,12 +7,16 @@ import math
 import time
 import processing.cpu
 import benchmark
+import processing.cl
+
+const min_temp = f32(1500.0)
+const max_temp = f32(15000.0)
 
 pub struct Temperature implements Edit {
 	name            string                = 'Temperature'
 	cs_from         common.ColorspaceType = .rgb
 	cs_to           common.ColorspaceType = .rgb
-	needed_backends []common.BackendID    = [common.BackendID.cpu]
+	needed_backends []common.BackendID    = [common.BackendID.cl]
 pub mut:
 	process_time time.Duration
 	used_backend common.BackendID
@@ -22,9 +26,10 @@ pub mut:
 	handle_color common.RGB
 
 	// params
-	enabled     bool
-	temperature f32 = 6600
-	amount      f32 = 1
+	enabled                bool
+	temperature            f32 = 6600
+	amount                 f32 = 1
+	luminance_preservation f32 = 0.75
 }
 
 pub fn (mut temp Temperature) draw() bool {
@@ -44,8 +49,8 @@ pub fn (mut temp Temperature) draw() bool {
 	cimgui.ig_push_style_color_vec4(.im_gui_col_slider_grab, color_temp_ig_handle)
 
 	// cimgui.ig_push_style_color_vec4(.im_gui_col_slider_grab_active, color_temp_ig)
-	changed ||= cimgui.ig_slider_float('Temp'.str, &temp.temperature, 1000, 40000.0, '%.0f K'.str,
-		.im_gui_slider_flags_none)
+	changed ||= cimgui.ig_slider_float('Temp'.str, &temp.temperature, min_temp, max_temp,
+		'%.0f K'.str, .im_gui_slider_flags_none)
 	cimgui.ig_pop_style_color(4)
 
 	// cimgui.ig_same_line(0, 10)
@@ -54,6 +59,11 @@ pub fn (mut temp Temperature) draw() bool {
 
 	cimgui.ig_push_id_str('Amount_Slider'.str)
 	changed ||= cimgui.ig_slider_float('Amount'.str, &temp.amount, 0, 1, '%.2f'.str, .im_gui_slider_flags_none)
+	cimgui.ig_pop_id()
+
+	cimgui.ig_push_id_str('Luminance_Preserve_Slider'.str)
+	changed ||= cimgui.ig_slider_float('Luminance Preserve'.str, &temp.luminance_preservation,
+		0, 1, '%.2f'.str, .im_gui_slider_flags_none)
 	cimgui.ig_pop_id()
 
 	cimgui.ig_text('(${temp.process_time} on ${temp.used_backend})'.str)
@@ -66,7 +76,12 @@ pub fn (mut temp Temperature) process(mut backend processing.Backend) {
 	temp.used_backend = backend.id
 	if mut backend is cpu.BackendCPU {
 		mut eb_cpu := unsafe { &ExternBackendCPU(backend) }
-		eb_cpu.adjust_temp(temp.temperature, temp.amount)
+		eb_cpu.adjust_temp(temp.temperature, temp.amount, temp.luminance_preservation)
+	} else if mut backend is cl.BackendCL {
+		mut eb_cl := unsafe { &ExternBackendCL(backend) }
+		eb_cl.temperature(temp.temperature, temp.amount, temp.luminance_preservation)
+	} else {
+		panic('Backend not supported')
 	}
 	temp.process_time = b.step_timer.elapsed()
 }
@@ -226,7 +241,7 @@ fn get_temp_color(temperature f64, amount f64) common.RGB {
 	return color_temp
 }
 
-fn adjust_temp(pixel common.RGB, temperature f64, amount f64) common.RGB {
+fn adjust_temp(pixel common.RGB, temperature f64, amount f64, luminance_preservation f64) common.RGB {
 	// adjust the temperature of the image
 	// https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
 	// https://www.shadertoy.com/view/lsSXW1
@@ -242,16 +257,18 @@ fn adjust_temp(pixel common.RGB, temperature f64, amount f64) common.RGB {
 	mut result_hsl := rgb2hsl(blended)
 	result_hsl.l = original_luminance
 	result_rgb := hsl2rgb(result_hsl)
-	return result_rgb
 
-	// return color_temp
+	// return result_rgb
+	result := mix_colors(blended, result_rgb, luminance_preservation)
+	return result
 }
 
-pub fn (mut backend ExternBackendCPU) adjust_temp(temperature f64, amount f64) {
+@[direct_array_access]
+pub fn (mut backend ExternBackendCPU) adjust_temp(temperature f64, amount f64, luminance_preservation f64) {
 	for y in 0 .. backend.image_device_current.height {
 		for x in 0 .. backend.image_device_current.width {
 			pixel_rgb := backend.image_device_current.get_pixel[common.RGB](x, y)
-			temp_pixel_rgb := adjust_temp(pixel_rgb, temperature, amount)
+			temp_pixel_rgb := adjust_temp(pixel_rgb, temperature, amount, luminance_preservation)
 			backend.image_device_next.set_pixel[common.RGB](x, y, temp_pixel_rgb)
 		}
 	}
@@ -260,6 +277,28 @@ pub fn (mut backend ExternBackendCPU) adjust_temp(temperature f64, amount f64) {
 
 ////////  OpenCL  //////////
 
-// process_cl()
-// pub fn (invert Temperature) process(mut backend cl.BackendCL) {
-// }
+// https://www.shadertoy.com/view/lsSXW1
+const temperature_kernel = $embed_file('../processing/cl/kernels/temperature.cl').to_string()
+
+// type ExternBackendCL = cl.BackendCL
+pub fn (mut backend ExternBackendCL) temperature(temperature f64, amount f64, luminance_preservation f64) {
+	mut b := benchmark.start()
+
+	// add program source to device, get kernel
+	backend.device.add_program(temperature_kernel) or { panic(err) }
+	b.measure('cl.temperature() add program')
+	k := backend.device.kernel('temperature') or { panic(err) }
+	b.measure('cl.temperature() get kernel')
+
+	// run kernel (global work size 16 and local work size 1)
+	kernel_err := <-k.global(int(backend.image_device_current.bounds.width), int(backend.image_device_current.bounds.height))
+		.local(1, 1).run(backend.image_device_current, backend.image_device_next, f32(temperature),
+		f32(amount), f32(luminance_preservation))
+	if kernel_err !is none {
+		dump(kernel_err)
+		panic(kernel_err)
+	}
+	b.measure('cl.temperature() run kernel')
+
+	backend.swap_images()
+}

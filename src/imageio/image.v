@@ -150,7 +150,7 @@ pub fn load_image_raw(image_path string) Image {
 
 	println('libraw_processed_image.data ${libraw_processed_image.data}')
 
-	mut data := unsafe { arrays.carray_to_varray[u8](libraw_processed_image.data, libraw_processed_image.data_size) }
+	mut data := unsafe { arrays.carray_to_varray[u8](libraw_processed_image.data, int(libraw_processed_image.data_size)) }
 
 	dump(libraw_processed_image.colors)
 
@@ -205,7 +205,7 @@ pub fn load_image_raw2(image_path string, shared image Image) {
 
 	println('libraw_processed_image.data ${libraw_processed_image.data}')
 
-	mut data := unsafe { arrays.carray_to_varray[u8](libraw_processed_image.data, libraw_processed_image.data_size) }
+	mut data := unsafe { arrays.carray_to_varray[u8](libraw_processed_image.data, int(libraw_processed_image.data_size)) }
 
 	println(libraw_processed_image.colors)
 

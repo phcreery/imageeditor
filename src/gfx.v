@@ -175,7 +175,7 @@ fn GfxTexture.new_checkerboard() GfxTexture {
 	mut tmp_imgdata := gfx.ImageData{}
 	tmp_imgdata.subimage[0][0] = gfx.Range{
 		ptr:  arrays.flatten[u32](pixels).data
-		size: usize(arrays.flatten[u32](pixels).len * sizeof(pixels[0][0]))
+		size: usize(arrays.flatten[u32](pixels).len) * sizeof(pixels[0][0])
 	}
 
 	// rgb8 deprecated

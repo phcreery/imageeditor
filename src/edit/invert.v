@@ -33,6 +33,8 @@ pub fn (mut invert Invert) process(mut backend processing.Backend) {
 	if mut backend is cl.BackendCL {
 		mut eb_cl := unsafe { &ExternBackendCL(backend) }
 		eb_cl.invert()
+	} else {
+		panic('Backend not supported')
 	}
 	invert.process_time = b.step_timer.elapsed()
 }
@@ -50,6 +52,7 @@ pub fn (mut backend ExternBackendCL) invert() {
 	b.measure('cl.invert() add program')
 	k := backend.device.kernel('invert') or { panic(err) }
 	b.measure('cl.invert() get kernel')
+	dump(k)
 
 	// run kernel (global work size 16 and local work size 1)
 	kernel_err := <-k.global(int(backend.image_device_current.bounds.width), int(backend.image_device_current.bounds.height))

@@ -72,13 +72,15 @@ fn draw_about_window(mut state AppState) {
 		}
 	}
 
+	cimgui.ig_text(''.str)
+	cimgui.ig_text('Main Thread:'.str)
 	cimgui.ig_text('FPS: ${i32(state.fg.fps)} (${state.fg.fps_max()}|${state.fg.fps_min()})'.str)
 	cimgui.ig_plot_lines_float_ptr('FPS'.str, state.fg.fps_history.data, 100, 0, c'',
-		0, 120, cimgui.ImVec2{0, 80}, sizeof(f32))
+		0, 120, cimgui.ImVec2{0, 80}, int(sizeof(f32)))
 
 	cimgui.ig_text('Duty cycle: ${state.fg.duty_cycle}'.str)
 	cimgui.ig_plot_lines_float_ptr('Duty cycle'.str, state.fg.duty_history.data, 100,
-		0, c'', 0, 1, cimgui.ImVec2{0, 80}, sizeof(f32))
+		0, c'', 0, 1, cimgui.ImVec2{0, 80}, int(sizeof(f32)))
 
 	// end
 	cimgui.ig_end()
