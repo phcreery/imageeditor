@@ -78,7 +78,7 @@ fn draw_about_window(mut state AppState) {
 	cimgui.ig_plot_lines_float_ptr('FPS'.str, state.fg.fps_history.data, 100, 0, c'',
 		0, 120, cimgui.ImVec2{0, 80}, int(sizeof(f32)))
 
-	cimgui.ig_text('Duty cycle: ${state.fg.duty_cycle}'.str)
+	cimgui.ig_text('Duty cycle: ${i32(state.fg.duty_cycle * 100)}%%'.str)
 	cimgui.ig_plot_lines_float_ptr('Duty cycle'.str, state.fg.duty_history.data, 100,
 		0, c'', 0, 1, cimgui.ImVec2{0, 80}, int(sizeof(f32)))
 

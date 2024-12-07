@@ -1,13 +1,20 @@
 module cl
 
+// import stbi
 import vsl.vcl
 import os
-import stbi
 import imageio
 import arrays
 import common
 
 pub const root = os.dir(@VMODROOT)
+
+struct ImageForCL {
+	width       int
+	height      int
+	nr_channels int
+	data        &u8
+}
 
 pub struct BackendCL {
 mut:
@@ -43,7 +50,7 @@ pub fn (mut backend BackendCL) init() {
 pub fn (mut backend BackendCL) copy_host_to_device(image imageio.Image) {
 	// load image from host to device
 	// backend.image = image
-	stbi_img := stbi.Image{
+	stbi_img := ImageForCL{
 		width:       image.width
 		height:      image.height
 		nr_channels: 4

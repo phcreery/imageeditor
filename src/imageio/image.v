@@ -1,7 +1,9 @@
 module imageio
 
 import os
-import stbi
+// import stbi
+import libs.stb.image as stbi
+import libs.stb.image.resize as stbir
 import libs.libraw
 import arrays
 import common
@@ -87,32 +89,41 @@ pub fn (mut img Image) set_pixel[T](x int, y int, rgb T) {
 	}
 }
 
-pub fn load_image(image_path string) Image {
+pub fn load_image(path string) Image {
 	// NOTE: since stbi automatically converts to RGBA (4 channels) when desired_channels, we don't need to do it here
 	// NOTE: stbi_image.nr_channels is the number of channels in the image file, not of the buffer
 
 	// load image
-	params := stbi.LoadParams{
-		desired_channels: 4
+	// params := stbi.LoadParams{
+	// 	desired_channels: 4
+	// }
+	buffer := os.read_bytes(path) or { panic('failed to read image') }
+	// stbi_image := stbi.load_from_memory(buffer.data, buffer.len, params) or {
+	// 	panic('failed to load image')
+	// }
+
+	mut image := Image{
+		nr_channels: 4
 	}
-	buffer := os.read_bytes(image_path) or { panic('failed to read image') }
-	stbi_image := stbi.load_from_memory(buffer.data, buffer.len, params) or {
-		panic('failed to load image')
+
+	data := stbi.stbi_load_from_memory(buffer.data, buffer.len, &image.width, &image.height,
+		&image.nr_channels, 4)
+
+	if isnil(data) {
+		// return error('stbi_image failed to load from "${path}"')
+		panic('stbi_image failed to load from "${path}"')
 	}
-	defer {
-		stbi_image.free()
+
+	// defer {
+	// 	// stbi_image.free()
+	// 	stbi.stbi_image_free(data)
+	// }
+	image.data = unsafe {
+		arrays.carray_to_varray[u8](data, image.width * image.height * 4)
 	}
-	mut data := unsafe {
-		arrays.carray_to_varray[u8](stbi_image.data, stbi_image.width * stbi_image.height * 4)
-	}
+	// image.data = data
 	// println('data_rgba first 4 bytes ${data[0]} ${data[1]} ${data[2]} ${data[3]}')
 
-	image := Image{
-		width:       stbi_image.width
-		height:      stbi_image.height
-		nr_channels: 4
-		data:        data
-	}
 	return image
 }
 
@@ -227,11 +238,11 @@ pub fn load_image_raw2(image_path string, shared image Image) {
 	}
 }
 
-pub fn (img Image) save_bmp(image_path string) {
-	stbi.stbi_write_bmp(image_path, img.width, img.height, img.nr_channels, img.data.data) or {
-		panic('failed to write image')
-	}
-}
+// pub fn (img Image) save_bmp(image_path string) {
+// 	stbi.stbi_write_bmp(image_path, img.width, img.height, img.nr_channels, img.data.data) or {
+// 		panic('failed to write image')
+// 	}
+// }
 
 pub fn (img Image) clone() Image {
 	mut data := []u8{len: img.data.len}
@@ -244,6 +255,41 @@ pub fn (img Image) clone() Image {
 		nr_channels: img.nr_channels
 		data:        data
 	}
+}
+
+pub fn (img Image) scale(factor f64) Image {
+	// println('first 4 pixels: ${img.data[0]} ${img.data[1]} ${img.data[2]} ${img.data[3]}')
+
+	w := img.width
+	h := img.height
+
+	ow := i32(w * factor)
+	oh := i32(h * factor)
+
+	mut new_image := Image{
+		nr_channels: 4
+	}
+
+	cdata := unsafe { malloc(usize(ow * oh * 4)) }
+	data := stbir.stbir_resize_uint8_linear(img.data.data, w, h, 0, cdata, ow, oh, 0,
+		stbir.Stbir_pixel_layout.stbir_rgba)
+
+	if isnil(data) {
+		// return error('stbi_image failed to resize')
+		panic('stbi_image failed to resize')
+	}
+
+	new_image.width = i32(w * factor)
+	new_image.height = i32(h * factor)
+	new_image.data = unsafe {
+		arrays.carray_to_varray[u8](cdata, new_image.width * new_image.height * 4)
+	}
+
+	// println('first 4 pixels: ${new_image.data[0]} ${new_image.data[1]} ${new_image.data[2]} ${new_image.data[3]}')
+	// println('new_image.width: ${new_image.width} new_image.height: ${new_image.height}')
+	// println('new_image.data.len: ${new_image.data.len}')
+
+	return new_image
 }
 
 @[direct_array_access]
