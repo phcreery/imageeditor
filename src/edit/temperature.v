@@ -35,9 +35,8 @@ pub mut:
 pub fn (mut temp Temperature) draw() bool {
 	mut changed := false
 
-	cimgui.ig_separator_text(temp.name.str)
-	changed ||= cimgui.ig_checkbox(temp.name.str, &temp.enabled)
-
+	// cimgui.ig_separator_text(temp.name.str)
+	// changed ||= cimgui.ig_checkbox(temp.name.str, &temp.enabled)
 	cimgui.ig_push_id_str('Temp_Slider'.str)
 
 	color_temp := get_temp_color(temp.temperature, temp.amount)

@@ -875,7 +875,7 @@ pub:
 	childBorderSize             f32
 	popupRounding               f32
 	popupBorderSize             f32
-	framePadding                C.ImVec2
+	FramePadding                C.ImVec2
 	frameRounding               f32
 	frameBorderSize             f32
 	itemSpacing                 C.ImVec2
@@ -3696,8 +3696,8 @@ pub:
 	viewportId                         ImGuiID
 	viewportPos                        C.ImVec2
 	viewportAllowPlatformMonitorExtend int
-	pos                                C.ImVec2
-	size                               C.ImVec2
+	Pos                                C.ImVec2 @[c: 'Pos']
+	Size                               C.ImVec2 @[c: 'Size']
 	sizeFull                           C.ImVec2
 	contentSize                        C.ImVec2
 	contentSizeIdeal                   C.ImVec2

@@ -257,9 +257,10 @@ pub fn (img Image) clone() Image {
 	}
 }
 
-pub fn (img Image) scale(factor f64) Image {
-	// println('first 4 pixels: ${img.data[0]} ${img.data[1]} ${img.data[2]} ${img.data[3]}')
-
+pub fn (img Image) scaled(factor f64) Image {
+	if factor == 1 {
+		return img
+	}
 	w := img.width
 	h := img.height
 
@@ -284,10 +285,6 @@ pub fn (img Image) scale(factor f64) Image {
 	new_image.data = unsafe {
 		arrays.carray_to_varray[u8](cdata, new_image.width * new_image.height * 4)
 	}
-
-	// println('first 4 pixels: ${new_image.data[0]} ${new_image.data[1]} ${new_image.data[2]} ${new_image.data[3]}')
-	// println('new_image.width: ${new_image.width} new_image.height: ${new_image.height}')
-	// println('new_image.data.len: ${new_image.data.len}')
 
 	return new_image
 }

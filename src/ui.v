@@ -16,7 +16,7 @@ interface CimguiState {
 struct UIWindowAbout implements CimguiState {
 pub mut:
 	is_open bool          = true
-	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 10}
+	pos     cimgui.ImVec2 = cimgui.ImVec2{320, 10}
 	size    cimgui.ImVec2 = cimgui.ImVec2{300, 400}
 
 	cimgui_version string = unsafe { cstring_to_vstring(&char(cimgui.ig_get_version())) }
@@ -37,10 +37,18 @@ pub mut:
 	size    cimgui.ImVec2 = cimgui.ImVec2{300, 600}
 }
 
+struct UIWindowToolbar implements CimguiState {
+pub mut:
+	is_open bool          = true
+	pos     cimgui.ImVec2 = cimgui.ImVec2{10, 10}
+	size    cimgui.ImVec2 = cimgui.ImVec2{300, 400}
+}
+
 struct UIWindows {
 	about   UIWindowAbout      = UIWindowAbout{}
 	basic   UIWindowBasicEdits = UIWindowBasicEdits{}
 	catalog UIWindowCatalog    = UIWindowCatalog{}
+	toolbar UIWindowToolbar    = UIWindowToolbar{}
 }
 
 fn UIWindows.new() UIWindows {
@@ -55,6 +63,7 @@ fn draw_about_window(mut state AppState) {
 	// initialize
 	cimgui.ig_set_next_window_pos(state.windows.about.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
 	cimgui.ig_set_next_window_size(state.windows.about.size, .im_gui_cond_once)
+	cimgui.ig_set_next_window_collapsed(true, .im_gui_cond_once)
 
 	// begin
 	cimgui.ig_begin('About'.str, &state.windows.about.is_open, .im_gui_window_flags_none)
@@ -148,20 +157,45 @@ fn draw_edit_window(mut state AppState) {
 	cimgui.ig_set_next_window_pos(state.windows.basic.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
 	cimgui.ig_set_next_window_size(state.windows.basic.size, .im_gui_cond_once)
 	cimgui.ig_begin('Basic Edits'.str, &state.windows.basic.is_open, .im_gui_window_flags_none)
-	// cimgui.color_edit3('Background', &state.pass_action.colors[0].clear_value.r, 0)
-	// changed ||= cimgui.checkbox('Invert', &state.center_image_pixpipe.invert.enabled)
-	// dump(changed)
-	// changed ||= cimgui.checkbox('Grayscale', &state.center_image_pixpipe.grayscale)
 
 	for mut edit in state.center_image_pixpipe.edits {
-		changed ||= edit.draw()
+		mut tree_node_flags := i32(0)
+		tree_node_flags |= i32(cimgui.ImGuiTreeNodeFlags.im_gui_tree_node_flags_default_open)
+		tree_node_flags |= i32(cimgui.ImGuiTreeNodeFlags.im_gui_tree_node_flags_allow_overlap)
+		tree_node_flags |= i32(cimgui.ImGuiTreeNodeFlags.im_gui_tree_node_flags_open_on_arrow)
+		tree_node_flags |= i32(cimgui.ImGuiTreeNodeFlags.im_gui_tree_node_flags_open_on_double_click)
+		tree_node_flags |= i32(cimgui.ImGuiTreeNodeFlags.im_gui_tree_node_flags_framed)
+		tree_node_flags_ig := unsafe { cimgui.ImGuiTreeNodeFlags(tree_node_flags) }
+		// cimgui.ig_set_next_item_allow_overlap()
+
+		// node_open := cimgui.ig_tree_node_ex_str(edit.name.str, tree_node_flags_ig)
+		// node_open := cimgui.ig_collapsing_header_bool_ptr(edit.name.str, &edit.ui_expanded,
+		// 	tree_node_flags_ig)
+
+		cimgui.ig_push_id_str('#${edit.name} HEADER'.str)
+		node_open := cimgui.ig_collapsing_header_tree_node_flags(edit.name.str, tree_node_flags_ig)
+		cimgui.ig_pop_id()
+		cimgui.ig_push_id_str('#${edit.name} CHECKBOX'.str)
+		// align right
+		window_width := cimgui.ig_get_window_width()
+		style := cimgui.ig_get_style()
+		frame_padding := style.FramePadding
+		cimgui.ig_same_line(window_width - cimgui.ig_get_frame_height() - frame_padding.x,
+			0)
+		// cimgui.ig_same_line(0, 0)
+		changed ||= cimgui.ig_checkbox(edit.name.str, &edit.enabled)
+		cimgui.ig_pop_id()
+
+		if node_open {
+			changed ||= edit.draw()
+		}
 	}
 
 	state.center_image_pixpipe.dirty ||= changed
 	cimgui.ig_end()
 }
 
-fn draw_processing_dialog_window(mut state AppState) {
+fn draw_processing_dialog_popover(mut state AppState) {
 	if !state.center_image_pixpipe.dirty {
 		return
 	}
@@ -182,6 +216,45 @@ fn draw_processing_dialog_window(mut state AppState) {
 	cimgui.ig_end()
 }
 
+fn draw_processing_toolbar_window(mut state AppState) {
+	if !state.windows.toolbar.is_open {
+		return
+	}
+
+	// initialize
+	cimgui.ig_set_next_window_pos(state.windows.toolbar.pos, .im_gui_cond_once, cimgui.ImVec2{0, 0})
+	cimgui.ig_set_next_window_size(state.windows.toolbar.size, .im_gui_cond_once)
+
+	// begin
+	cimgui.ig_begin('Toolbar'.str, &state.windows.toolbar.is_open, .im_gui_window_flags_none)
+	// content
+
+	mut preview_scale_sizes_str := []string{}
+	for size in state.center_image_scale_factors {
+		preview_scale_sizes_str << '${size}x'
+	}
+
+	mut preview_scale_sizes_str_ptrs := []&u8{len: preview_scale_sizes_str.len, init: 0}
+	for i, item in preview_scale_sizes_str {
+		preview_scale_sizes_str_ptrs[i] = item.str
+	}
+	if preview_scale_sizes_str.len == 0 {
+		preview_scale_sizes_str_ptrs = []&u8{len: 1, init: 0}
+	}
+
+	mut changed := false
+	changed ||= cimgui.ig_combo_str_arr('Preview Scale'.str, &state.center_image_scale_factor_idx,
+		&preview_scale_sizes_str_ptrs[0], state.center_image_scale_factors.len, state.center_image_scale_factors.len)
+
+	if changed {
+		// state.prepare_image_processing()
+		state.set_catalog_current_image_index(state.catalog_current_image_index)
+	}
+
+	// end
+	cimgui.ig_end()
+}
+
 // NOTE: these are not methods of AppState or Windows because we need access to the entire app state to draw the window contents
 fn draw_windows(mut state AppState) {
 	// v -cg ...
@@ -193,7 +266,8 @@ fn draw_windows(mut state AppState) {
 	draw_about_window(mut state)
 	draw_edit_window(mut state)
 	draw_catalog_window(mut state)
-	draw_processing_dialog_window(mut state)
+	draw_processing_dialog_popover(mut state)
+	draw_processing_toolbar_window(mut state)
 }
 
 fn event(ev &sapp.Event, mut state AppState) {

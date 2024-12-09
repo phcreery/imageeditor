@@ -22,7 +22,9 @@ mut:
 	center_image_original       imageio.Image
 	center_image_processed      &imageio.Image = &imageio.Image{}
 	center_image_pixpipe        edit.PixelPipeline
-	center_image_scale          f64 = 1
+	// center_image_scale          f64 = 1
+	center_image_scale_factors    []f64 = [0.1, 0.2, 0.5, 1]
+	center_image_scale_factor_idx int   = 3
 
 	// ui
 	pass_action           gfx.PassAction
@@ -31,29 +33,6 @@ mut:
 	windows               UIWindows
 	fg                    FrameGovernor
 }
-
-// // resize_float resizes `img` to dimensions of `output_w` and `output_h`
-// pub fn resize_uint8(img &stbi.Image, output_w int, output_h int) !stbi.Image {
-// 	mut res := stbi.Image{
-// 		ok:                   true
-// 		ext:                  img.ext
-// 		width:                output_w
-// 		height:               output_h
-// 		nr_channels:          img.nr_channels
-// 		original_nr_channels: img.original_nr_channels // preserve the metadata of the original, during resizes
-// 	}
-
-// 	res.data = unsafe { malloc(usize(output_w * output_h * img.nr_channels)) }
-// 	if res.data == 0 {
-// 		return error('stbi_image failed to resize file')
-// 	}
-
-// 	if 0 == stbi.stbir_resize_uint8_linear(img.data, img.width, img.height, 0, res.data,
-// 		output_w, output_h, 0, stbi.Stbir_pixel_layout.stbir_rgba) {
-// 		return error('stbi_image failed to resize file')
-// 	}
-// 	return res
-// }
 
 fn (mut state AppState) set_catalog_current_image_index(index int) {
 	if state.catalog.images[index].status != imageio.LoadStatus.loaded {
@@ -65,15 +44,15 @@ fn (mut state AppState) set_catalog_current_image_index(index int) {
 
 	state.center_image_original = img
 	state.prepare_image_processing()
+	state.center_image_pixpipe.dirty = true
 }
 
 fn (mut state AppState) prepare_image_processing() {
-	state.center_image_original = state.center_image_original.scale(state.center_image_scale)
+	state.center_image_original = state.center_image_original.scaled(state.center_image_scale_factors[state.center_image_scale_factor_idx])
 	state.center_image_processed = &imageio.Image{
 		width:  state.center_image_original.width
 		height: state.center_image_original.height
 	}
-	state.center_image_pixpipe.dirty = true
 	state.center_image_rendered.create(state.center_image_original)
 	state.center_image_rendered.update(state.center_image_original)
 	state.center_image_rendered.reset_params()
@@ -92,7 +71,7 @@ fn (mut state AppState) get_catalog_current_image_index() int {
 fn (mut state AppState) open_image_dev() {
 	// DEV
 	mut images := []string{}
-	// images << 'sample/DSC_6765.NEF'
+	images << 'sample/DSC_6765.NEF'
 	images << 'sample/photo_hat.jpg'
 	// images << 'sample/Lenna.png'
 	// images << 'sample/LIT_9419.JPG_edit.bmp'

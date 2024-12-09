@@ -21,7 +21,7 @@ pub mut:
 }
 
 pub fn (mut invert Invert) draw() bool {
-	cimgui.ig_separator_text(invert.name.str)
+	// cimgui.ig_separator_text(invert.name.str)
 	changed := cimgui.ig_checkbox('Invert'.str, &invert.enabled)
 	cimgui.ig_text('(${invert.process_time} on ${invert.used_backend})'.str)
 	return changed
