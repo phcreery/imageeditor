@@ -190,12 +190,12 @@ fn cleanup(mut state AppState) {
 }
 
 fn main() {
-	mod := vmod.decode(@VMOD_FILE) or { panic('Error decoding v.mod') }
-	print_console_header(mod.version)
+	vmod_file := vmod.decode(@VMOD_FILE) or { panic('Error decoding v.mod') }
+	print_console_header(vmod_file.version)
 	title := "PIE: Peyton's Image Editor"
 
 	mut state := &AppState{
-		version: mod.version
+		version: vmod_file.version
 	}
 
 	desc := sapp.Desc{
