@@ -10,6 +10,7 @@ This will try to download and setup cimgui, sokol, and LibRaw
 make app
 v -cc gcc -d vsl_vcl_dlopencl watch run .
 v -cc gcc -showcc -d vsl_vcl_dlopencl watch run .
+v -cc clang -showcc -cflags '-Wno-enum-conversion -Wno-pointer-sign -Wmissing-prototypes -framework OpenCL -lstdc++ -v' -cg -d vsl_vcl_dlopencl run .
 ```
 
 vsl_vcl_dlopencl tells vsl to use dynamically linked opencl

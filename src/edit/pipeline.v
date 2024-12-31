@@ -20,15 +20,15 @@ enum PixelPipeType {
 
 pub struct PixelPipeline {
 pub mut:
-	backends        []&processing.Backend
+	backends        []processing.Backend
 	type            PixelPipeType
 	dirty           bool
 	edits           []&Edit
-	current_backend ?&processing.Backend
+	current_backend ?processing.Backend
 }
 
 pub fn init_pixelpipeline() PixelPipeline {
-	mut backends := []&processing.Backend{}
+	mut backends := []processing.Backend{}
 	backends << cpu.BackendCPU.new()
 	backends << cl.BackendCL.new()
 
@@ -174,7 +174,7 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 		return
 	}
 
-	pixpipe.current_backend = ?&processing.Backend(none)
+	pixpipe.current_backend = ?processing.Backend(none)
 
 	mut b := benchmark.start()
 
@@ -201,13 +201,13 @@ pub fn (mut pixpipe PixelPipeline) process(img imageio.Image, mut new_img imagei
 
 				// move image to supported backend
 				new_backend_id := arrays.find_first(edit.needed_backends, fn [pixpipe] (needed_id common.BackendID) bool {
-					return pixpipe.backends.any(fn [needed_id] (available &processing.Backend) bool {
+					return pixpipe.backends.any(fn [needed_id] (available processing.Backend) bool {
 						return available.id == needed_id
 					})
 				}) or { panic('no ready backend found') }
 
 				// dump(new_backend_id)
-				new_backend_idx := arrays.index_of_first(pixpipe.backends, fn [new_backend_id] (idx int, backend &processing.Backend) bool {
+				new_backend_idx := arrays.index_of_first(pixpipe.backends, fn [new_backend_id] (idx int, backend processing.Backend) bool {
 					return backend.id == new_backend_id
 				})
 
