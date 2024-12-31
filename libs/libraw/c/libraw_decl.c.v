@@ -18,9 +18,10 @@ module c
 // https://stackoverflow.com/questions/71717340/liblivemedia-throwing-undefined-reference-errors-when-linking-imp-xxxxxx
 // https://stackoverflow.com/questions/2033608/mingw-linker-error-winsock
 // https://github.com/LibRaw/LibRaw/issues/267
-#flag -lwsock32
-#flag -lws2_32
+#flag windows -lwsock32
+#flag windows -lws2_32
 // since the libaray is c++, we need to inglude the c++ libs during linking
 // https://stackoverflow.com/questions/7397302/why-cant-i-link-a-mixed-c-c-static-library-that-has-a-c-interface-using-gcc
 #flag -lstdc++
+
 #flag -lm

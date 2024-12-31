@@ -12,17 +12,21 @@ app: $(OBJS)
 	v -cc cc -showcc .
 
 cimgui:
-	cd thirdparty && git clone --recursive https://github.com/cimgui/cimgui.git
+# cd thirdparty && git clone --recursive https://github.com/cimgui/cimgui.git
+	cd thirdparty && git clone --branch 1.91.1 --recursive https://github.com/cimgui/cimgui.git
 	cd thirdparty/cimgui && $(MAKE) static
 # FOR SHARED DLL INSTEAD OF STATIC, UNCOMMENT BELOW
 # copy dll to ./src
 # cp ./thirdparty/cimgui/libcimgui.dll ./src
+# use -std=c++11
 
 sokol:
-	cd thirdparty && git clone https://github.com/floooh/sokol
+# cd thirdparty && git clone https://github.com/floooh/sokol
+  cd thirdparty && git clone --branch pre-bindings-cleanup https://github.com/floooh/sokol/
 
 libraw:
-	cd thirdparty && git clone https://github.com/LibRaw/LibRaw
+# cd thirdparty && git clone https://github.com/LibRaw/LibRaw
+	cd thirdparty && git clone --branch 0.21.2 https://github.com/LibRaw/LibRaw
 	cd thirdparty/LibRaw && $(MAKE) -f Makefile.dist library
 # for win users, you may need to use msys2 mingw64 for this ^
 # or change it to Makefile.mingw

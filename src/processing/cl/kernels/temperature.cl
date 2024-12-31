@@ -15,12 +15,12 @@
 
 #define EPSILON 1e-10
 
-float saturate(float v) { return clamp(v, 0.0f, 1.0f); }
-float3 saturate_f3(float3 v) {
+static float saturate(float v) { return clamp(v, 0.0f, 1.0f); }
+static float3 saturate_f3(float3 v) {
   return clamp(v, (float3)(0.0f), (float3)(1.0f));
 }
 
-float3 ColorTemperatureToRGB(float temperatureInKelvins) {
+static float3 ColorTemperatureToRGB(float temperatureInKelvins) {
   float3 retColor;
 
   temperatureInKelvins =
@@ -48,37 +48,37 @@ float3 ColorTemperatureToRGB(float temperatureInKelvins) {
   return retColor;
 }
 
-float Luminance(float3 color) {
+static float Luminance(float3 color) {
   float fmin = min(min(color.x, color.y), color.z);
   float fmax = max(max(color.x, color.y), color.z);
   return (fmax + fmin) / 2.0f;
 }
 
-float3 HUEtoRGB(float H) {
+static float3 HUEtoRGB(float H) {
   float R = fabs(H * 6.0f - 3.0f) - 1.0f;
   float G = 2.0f - fabs(H * 6.0f - 2.0f);
   float B = 2.0f - fabs(H * 6.0f - 4.0f);
   return saturate_f3((float3)(R, G, B));
 }
 
-float3 HSLtoRGB(float3 HSL) {
+static float3 HSLtoRGB(float3 HSL) {
   float3 RGB = HUEtoRGB(HSL.x);
   float C = (1.0f - fabs(2.0f * HSL.z - 1.0f)) * HSL.y;
   return (RGB - 0.5f) * C + (float3)(HSL.z);
 }
 
-float3 RGBtoHCV(float3 RGB) {
+static float3 RGBtoHCV(float3 RGB) {
   // Based on work by Sam Hocevar and Emil Persson
   float4 P = (RGB.y < RGB.z) ? (float4)(RGB.z, RGB.y, -1.0f, 2.0f / 3.0f)
                              : (float4)(RGB.y, RGB.z, 0.0f, -1.0f / 3.0f);
   float4 Q = (RGB.x < P.x) ? (float4)(P.x, P.y, P.w, RGB.x)
                            : (float4)(RGB.x, P.y, P.z, P.x);
   float C = Q.x - fmin(Q.w, Q.y);
-  float H = fabs((Q.w - Q.y) / (6.0f * C + EPSILON) + Q.z);
+  float H = fabs((float)(Q.w - Q.y) / (float)(6.0f * C + EPSILON) + (float)Q.z);
   return (float3)(H, C, Q.x);
 }
 
-float3 RGBtoHSL(float3 RGB) {
+static float3 RGBtoHSL(float3 RGB) {
   float3 HCV = RGBtoHCV(RGB);
   float L = HCV.z - HCV.y * 0.5f;
   float S = HCV.y / (1.0f - fabs(L * 2.0f - 1.0f) + EPSILON);
