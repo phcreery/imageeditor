@@ -1,0 +1,137 @@
+#!/usr/bin/env -S v
+
+// run with `v ./make.vsh`
+enum Target {
+	Windows
+	Linux
+	MacOS
+}
+
+enum ReturnCode {
+	Success
+	Failed
+}
+
+struct Dep {
+	name     string
+	location string
+	objects  []string
+	steps    []string
+}
+
+struct Build {
+	cc string
+
+	// target Target
+	cflags []string = []
+	vflags []string = []
+	deps   []Dep
+	exe    ?string
+}
+
+type MakeCommand = fn (b Build) ReturnCode
+
+struct Make {
+	builds []Build
+
+	commands map[string]MakeCommand
+	help     string
+}
+
+fn Build.default_cc() string {
+	return 'gcc'
+}
+
+fn (m Make) add_command(name string, cmd MakeCommand, help string) {
+	m.commands[name] = cmd
+	m.help += '\n${name}: ${help}'
+}
+
+fn (m Make) run_command(name string) ReturnCode {
+	cmd := m.commands[name]
+	println('running command: ${name}')
+
+	// return cmd(m)
+	return ReturnCode.Failed
+}
+
+fn execute_cmd(cmd string) ReturnCode {
+	println('running: ${cmd}')
+
+	// execute(cmd)
+	return ReturnCode.Failed
+}
+
+fn (b Build) help() string {
+	return 'Usage: v make.vsh [options]'
+}
+
+fn (b Build) install_deps() {
+	for dep in b.deps {
+		println('installing ${dep.name}')
+		for step in dep.steps {
+			// execute_cmd(step)
+		}
+	}
+}
+
+fn (b Build) build() {
+	cmd := 'v -cc ${b.cc} ${b.vflags.join(' ')} -cflags ${b.cflags.join(' ')} .'
+
+	// execute_cmd(cmd)
+}
+
+fn (b Build) dev() {
+	cmd := 'v -cc ${b.cc} ${b.vflags.join(' ')} -cflags ${b.cflags.join(' ')} watch run .'
+
+	// execute_cmd(cmd)
+}
+
+const args = arguments()
+
+// ####################  DEPENDENCIES  ####################
+dep_cimgui := Dep{
+	name:     'cimgui'
+	location: 'thirdparty/cimgui'
+	objects:  ['cimgui.h', 'libcimgui.a']
+	steps:    [
+		'cd thirdparty && git clone --branch 1.91.1 --recursive https://github.com/cimgui/cimgui.git',
+		'cd thirdparty/cimgui && make static',
+	]
+}
+
+dep_sokol := Dep{
+	name:     'sokol'
+	location: 'thirdparty/sokol'
+	objects:  ['sokol_app.h', 'sokol_gfx.h', 'sokol_time.h', 'sokol_glue.h', 'sokol_log.h']
+	steps:    [
+		'cd thirdparty && git clone --branch pre-bindings-cleanup https://github.com/floooh/sokol/',
+	]
+}
+
+dep_libraw := Dep{
+	name:     'libraw'
+	location: 'thirdparty/LibRaw'
+	objects:  ['libraw.h', 'lib/libraw.a']
+	steps:    [
+		'cd thirdparty && git clone --branch 0.21.2 https://github.com/LibRaw/LibRaw',
+		'cd thirdparty/LibRaw && make -f Makefile.dist library',
+	]
+}
+
+// ####################  BUILD  ####################
+exe := 'imageeditor.exe'
+mut build := Build{
+	cc:     Build.default_cc()
+	cflags: []
+	vflags: ['-d vsl_vcl_dlopencl']
+	deps:   [dep_cimgui, dep_sokol, dep_libraw]
+	exe:    exe
+}
+
+mut make := Make{
+	builds: [build]
+	help:   'Usage: v make.vsh [options]'
+}
+
+println('args: ${args}')

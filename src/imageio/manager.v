@@ -120,23 +120,26 @@ pub fn spawn_load_image_workers(managed_image_chan chan ManagedImage, filepath_c
 					status: LoadStatus.loading
 				}
 				managed_image_chan <- mi
-				ff := mi.get_file_format()
-				if ff == FileFormat.ldr {
-					image := load_image(filepath)
-					managed_image_chan <- ManagedImage{
-						path:   filepath
-						image:  image
-						status: LoadStatus.loaded
+				match mi.get_file_format() {
+					.ldr {
+						image := load_image(filepath)
+						managed_image_chan <- ManagedImage{
+							path:   filepath
+							image:  image
+							status: LoadStatus.loaded
+						}
 					}
-				} else if ff == FileFormat.raw {
-					image := load_image_raw(filepath)
-					managed_image_chan <- ManagedImage{
-						path:   filepath
-						image:  image
-						status: LoadStatus.loaded
+					.raw {
+						image := load_image_raw(filepath)
+						managed_image_chan <- ManagedImage{
+							path:   filepath
+							image:  image
+							status: LoadStatus.loaded
+						}
 					}
-				} else {
-					panic('unsupported file format')
+					else {
+						panic('unsupported file format')
+					}
 				}
 			}
 			wg.done()
