@@ -30,9 +30,10 @@ $if emscripten ? {
 // #flag darwin -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo `sdl2-config --libs`
 
 // this is needed for cimgui
-#flag windows -lstdc++
+// #flag windows -lstdc++
 // #flag windows -lstdc++ -lgcc_s -lgcc_s -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
-#flag linux -lstdc++
+// #flag linux -lstdc++
+
 // #flag linux -lGLU -lglfw -lrt -lm -ldl -lX11
 #flag darwin -lm -lc++
 

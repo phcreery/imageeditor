@@ -5,13 +5,14 @@ APP = imageeditor.exe
 
 DEPS = thirdparty/cimgui/libcimgui.o
 DEPS += thirdparty/sokol/sokol_glue.h
+DEPS += thirdparty/sokol/sokol_gfx.h
+DEPS += thirdparty/sokol/sokol_app.h
 DEPS += thirdparty/sokol/util/sokol_imgui.h
 DEPS += thirdparty/LibRaw/lib/libraw.a
-
-# UNAME_S := $(shell uname -s)
-
+DEPS += thirdparty/LibRaw/libraw/libraw.h
 
 VFLAGS += -d vsl_vcl_dlopencl
+
 ifeq ($(OS),Windows_NT)
 	CC = gcc
 else
